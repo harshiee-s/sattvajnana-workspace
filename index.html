@@ -1,0 +1,2030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    /* Set the theme before first paint to avoid a light-mode flash. */
+    (function(){
+      try{
+        var saved = localStorage.getItem('workspace-theme');
+        var theme = saved || ((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      }catch(e){}
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<link rel="icon" type="image/png" href="svg.png" />
+  <link rel="shortcut icon" type="image/png" href="svg.png" />
+  <link rel="apple-touch-icon" href="svg.png" />
+  <title>Workspace | Sattva Jnana</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    :root {
+      /* Liquid glass — a calm, near-neutral surface. Frost + light do the work, not saturated color. */
+      --bg:#EEF1F6; --surface:rgba(255,255,255,0.58); --surface-2:rgba(255,255,255,0.38);
+      --surface-solid:#FBFCFE; --surface-2-solid:#F1F3F7;
+      --primary:#0A1628; --primary-mid:#1C3358;
+      --ink:#0A1628; --ink-strong:#0A1628;
+      --surface-strong:rgba(255,255,255,0.78);
+      --neo-light:rgba(255,255,255,0.9); --neo-dark:rgba(163,177,198,0.55);
+      --neo-dist:5px; --neo-blur:12px;
+      --gold:#B99A55; --gold-soft:rgba(185,154,85,0.14); --gold-border:rgba(185,154,85,0.28);
+      --text:#0A1628; --text-2:#54606F; --text-3:#94A0AE;
+      --border:rgba(15,28,48,0.09); --border-2:rgba(15,28,48,0.06);
+      --glass-border:rgba(255,255,255,0.55);
+      --success:#3D7A5E; --success-bg:rgba(61,122,94,0.12);
+      --warn:#3B6AA0; --warn-bg:rgba(59,106,160,0.12);
+      --error:#B4483B; --error-bg:rgba(180,72,59,0.1);
+      --info:#3B6AA0; --info-bg:rgba(59,106,160,0.12);
+      --shadow-sm:0 1px 2px rgba(15,28,48,0.04),0 1px 10px rgba(15,28,48,0.05);
+      --shadow-md:0 10px 34px rgba(15,28,48,0.09),0 1px 2px rgba(15,28,48,0.05);
+      --shadow-lg:0 24px 70px rgba(15,28,48,0.16),0 2px 8px rgba(15,28,48,0.06);
+      --glass-inset:inset 0 1px 0 rgba(255,255,255,0.65),inset 0 0 0 1px rgba(255,255,255,0.28);
+      --blur:blur(22px) saturate(160%);
+      --blur-lg:blur(34px) saturate(160%);
+      --r-sm:8px; --r-md:14px; --r-lg:20px; --r-xl:26px; --r-pill:999px;
+      --t:0.2s cubic-bezier(0.4,0,0.2,1);
+      --font-head:"DM Serif Display",serif;
+      --font-body:"DM Sans",sans-serif;
+      --font-mono:"JetBrains Mono",monospace;
+    }
+    /* DARK THEME — same liquid-glass language, re-tinted for a low-light surface */
+    :root[data-theme="dark"]{
+      --bg:#0D1420; --surface:rgba(28,38,54,0.55); --surface-2:rgba(28,38,54,0.4);
+      --surface-solid:#141C29; --surface-2-solid:#1A2432;
+      --primary:#13233D; --primary-mid:#233958;
+      --ink:#EEF1F6; --ink-strong:#0A1628;
+      --surface-strong:rgba(28,38,54,0.82);
+      --neo-light:rgba(255,255,255,0.06); --neo-dark:rgba(0,0,0,0.6);
+      --gold:#D8BD82; --gold-soft:rgba(216,189,130,0.16); --gold-border:rgba(216,189,130,0.3);
+      --text:#E7EBF2; --text-2:#A7B1C2; --text-3:#71798B;
+      --border:rgba(255,255,255,0.09); --border-2:rgba(255,255,255,0.06);
+      --glass-border:rgba(255,255,255,0.13);
+      --success:#6FBB93; --success-bg:rgba(111,187,147,0.16);
+      --warn:#7DA8DE; --warn-bg:rgba(125,168,222,0.16);
+      --error:#E38779; --error-bg:rgba(227,135,121,0.14);
+      --info:#7DA8DE; --info-bg:rgba(125,168,222,0.16);
+      --shadow-sm:0 1px 2px rgba(0,0,0,0.25),0 1px 10px rgba(0,0,0,0.2);
+      --shadow-md:0 10px 34px rgba(0,0,0,0.35),0 1px 2px rgba(0,0,0,0.2);
+      --shadow-lg:0 24px 70px rgba(0,0,0,0.5),0 2px 8px rgba(0,0,0,0.25);
+      --glass-inset:inset 0 1px 0 rgba(255,255,255,0.08),inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;overflow:hidden;touch-action:manipulation;}
+    body{font-family:var(--font-body);color:var(--text);background:var(--bg);line-height:1.55;-webkit-font-smoothing:antialiased;transition:background .35s ease;}
+    /* Soft, blurred color fields behind the glass — the "liquid" backdrop everything else floats on */
+    body::before{content:'';position:fixed;inset:0;z-index:-2;transition:opacity .35s ease;background:
+      radial-gradient(46vw 46vw at 8% 6%, rgba(178,197,224,0.55) 0%, rgba(178,197,224,0) 68%),
+      radial-gradient(50vw 50vw at 96% 18%, rgba(214,199,164,0.42) 0%, rgba(214,199,164,0) 65%),
+      radial-gradient(55vw 55vw at 85% 96%, rgba(163,190,196,0.5) 0%, rgba(163,190,196,0) 62%),
+      radial-gradient(40vw 40vw at 18% 92%, rgba(200,182,205,0.32) 0%, rgba(200,182,205,0) 65%),
+      linear-gradient(160deg,#F2F4F8 0%,#E9EDF3 55%,#EAF0EE 100%);
+    }
+    :root[data-theme="dark"] body::before{background:
+      radial-gradient(46vw 46vw at 8% 6%, rgba(59,90,140,0.4) 0%, rgba(59,90,140,0) 68%),
+      radial-gradient(50vw 50vw at 96% 18%, rgba(150,120,60,0.28) 0%, rgba(150,120,60,0) 65%),
+      radial-gradient(55vw 55vw at 85% 96%, rgba(60,110,120,0.32) 0%, rgba(60,110,120,0) 62%),
+      radial-gradient(40vw 40vw at 18% 92%, rgba(110,80,120,0.22) 0%, rgba(110,80,120,0) 65%),
+      linear-gradient(160deg,#0F1826 0%,#0B1220 55%,#0C1A19 100%);
+    }
+    body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(rgba(10,22,40,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(10,22,40,0.02) 1px,transparent 1px);background-size:34px 34px;-webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 40%,#000 0%,transparent 100%);mask-image:radial-gradient(ellipse 80% 70% at 50% 40%,#000 0%,transparent 100%);}
+    :root[data-theme="dark"] body::after{background-image:linear-gradient(rgba(255,255,255,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.035) 1px,transparent 1px);}
+    .orb{position:fixed;z-index:-1;pointer-events:none;border-radius:50%;transition:opacity .35s ease;}
+    .orb-1{width:52vw;height:52vw;max-width:760px;max-height:760px;right:-16vw;bottom:-18vw;background:radial-gradient(circle at 32% 28%,rgba(255,255,255,0.75) 0%,rgba(255,255,255,0.15) 22%,rgba(178,197,224,0.28) 46%,rgba(178,197,224,0.06) 70%,transparent 78%);filter:blur(2px);}
+    .orb-2{width:20vw;height:20vw;max-width:280px;max-height:280px;right:6vw;bottom:4vw;background:radial-gradient(circle at 30% 26%,rgba(255,255,255,0.7) 0%,rgba(255,255,255,0.1) 30%,rgba(214,199,164,0.22) 60%,transparent 76%);filter:blur(1px);}
+    :root[data-theme="dark"] .orb-1{background:radial-gradient(circle at 32% 28%,rgba(120,150,200,0.4) 0%,rgba(120,150,200,0.1) 24%,rgba(80,110,160,0.16) 48%,rgba(80,110,160,0.04) 70%,transparent 78%);}
+    :root[data-theme="dark"] .orb-2{background:radial-gradient(circle at 30% 26%,rgba(216,189,130,0.28) 0%,rgba(216,189,130,0.08) 32%,rgba(216,189,130,0.1) 60%,transparent 76%);}
+    button,input,textarea,select{font:inherit;color:inherit;outline:none;}
+    button{cursor:pointer;border:none;background:none;}
+    a{text-decoration:none;color:inherit;}
+    ::-webkit-scrollbar{width:5px;height:5px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:rgba(10,22,40,0.15);border-radius:99px;}
+    /* Utility: the frosted-glass treatment shared by every floating surface */
+    .card,.stat-card,#dashGrid .card,.sidebar,.cp-sidebar,.header,.ep-header,.modal,.login-shell,
+    .emp-card,.report-card,.doc-card,.cp-stat-card,.session-row,.sched-row,.perf-entry,.empty,.cp-empty,
+    .toast,.cp-notif-panel,.table-wrap,.sidebar-footer,.cp-footer-card,.cp-help-card,.info-box,.success-box,
+    .modal-alert,.cp-hi-item,.login-trust-card,.doc-drop-zone{
+      backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+    }
+
+    /* LOGIN */
+    #loginScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999;background:transparent;transition:opacity 0.4s ease;padding:1.5rem;}
+    .login-shell{position:relative;z-index:1;width:100%;max-width:1040px;height:min(640px,92vh);display:grid;grid-template-columns:1.05fr 1fr;background:var(--surface);backdrop-filter:var(--blur-lg);-webkit-backdrop-filter:var(--blur-lg);border-radius:var(--r-xl);box-shadow:var(--shadow-lg),var(--glass-inset);border:1px solid var(--glass-border);overflow:hidden;}
+
+    /* Brand / illustration side */
+    .login-brand{position:relative;background-image:linear-gradient(160deg,rgba(10,22,40,0) 0%,rgba(22,40,71,0) 55%,rgba(28,54,96,0) 100%),url('bck-lg.png');background-size:cover;background-position:left center;background-repeat:no-repeat;color:#fff;overflow:hidden;}
+    .login-brand-glow{position:absolute;inset:0;background-image:radial-gradient(ellipse at 15% 15%,rgba(201,168,76,0.28) 0%,transparent 55%),radial-gradient(ellipse at 90% 85%,rgba(201,168,76,0.18) 0%,transparent 50%);pointer-events:none;}
+    .login-brand-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px);background-size:28px 28px;pointer-events:none;}
+    .login-brand-top{position:relative;display:flex;align-items:center;gap:.7rem;}
+    .login-brand-icon{width:42px;height:42px;border-radius:12px;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.15);}
+    .login-brand-icon img{width:100%;height:100%;object-fit:contain;}
+    .login-brand-name{font-family:var(--font-head);font-size:1.05rem;display:block;letter-spacing:-.01em;}
+    .login-brand-sub{font-size:.68rem;color:rgba(255,255,255,0.55);letter-spacing:.08em;text-transform:uppercase;display:block;margin-top:1px;}
+    .login-brand-mid{position:relative;margin-top:2.2rem;}
+    .login-portal-pill{display:inline-flex;align-items:center;padding:.35rem .8rem;border-radius:var(--r-pill);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:rgba(201,168,76,0.18);color:var(--gold);border:1px solid rgba(201,168,76,0.35);margin-bottom:1rem;}
+    .login-brand-mid h1{font-family:var(--font-head);font-size:2rem;line-height:1.18;letter-spacing:-.02em;margin-bottom:.9rem;color:#fff;}
+    .login-brand-mid p{font-size:.88rem;color:rgba(255,255,255,0.68);max-width:340px;line-height:1.6;}
+    .login-brand-illustration{position:relative;flex:1;display:flex;align-items:center;justify-content:center;min-height:100px;margin:1rem 0;}
+    .lbi-glow{position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,0.22) 0%,transparent 70%);}
+    .lbi-item{position:relative;display:flex;align-items:center;justify-content:center;border-radius:16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);backdrop-filter:blur(6px);color:var(--gold);box-shadow:0 8px 24px rgba(0,0,0,0.18);}
+    .lbi-stack{position:relative;display:flex;align-items:flex-end;gap:.9rem;}
+    .lbi-books{width:58px;height:58px;font-size:1.3rem;}
+    .lbi-plant{width:64px;height:64px;font-size:1.5rem;color:#8FCB9B;transform:translateY(-6px);}
+    .lbi-grad{width:58px;height:58px;font-size:1.3rem;}
+    .lbi-lamp{position:absolute;top:-6px;right:14%;width:46px;height:46px;font-size:1.1rem;color:#F2D98A;transform:rotate(8deg);}
+    .login-brand-foot{position:relative;}
+    .login-trust-card{display:flex;align-items:center;gap:.7rem;padding:.85rem 1rem;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);border-radius:var(--r-md);font-size:.8rem;color:rgba(255,255,255,0.85);}
+    .login-trust-card i{color:var(--gold);font-size:1rem;flex-shrink:0;}
+
+    /* Form side */
+    .login-form-panel{display:flex;align-items:center;justify-content:center;padding:2.5rem;background:var(--surface);overflow-y:auto;}
+    .login-card{position:relative;width:100%;max-width:340px;}
+    .login-role-badge{display:inline-flex;align-items:center;padding:.32rem .8rem;border-radius:var(--r-pill);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:var(--info-bg);color:var(--warn);border:1px solid rgba(26,94,187,.3);margin-bottom:1rem;}
+    .login-card h2{font-family:var(--font-head);font-size:1.9rem;color:var(--ink);margin-bottom:.3rem;letter-spacing:-.02em;display:flex;align-items:center;gap:.4rem;}
+    .login-card .wave{display:inline-block;font-size:1.5rem;transform-origin:70% 70%;animation:wave 2.2s ease-in-out infinite;}
+    @keyframes wave{0%,60%,100%{transform:rotate(0deg);}10%,30%{transform:rotate(14deg);}20%{transform:rotate(-8deg);}40%{transform:rotate(10deg);}}
+    .login-card>p{font-size:.86rem;color:var(--text-2);margin-bottom:1.6rem;}
+    .login-label{display:block;font-size:.72rem;font-weight:600;color:var(--text-2);margin-bottom:.35rem;}
+    .login-input-wrap{position:relative;margin-bottom:1rem;}
+    .login-input-wrap i{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:.8rem;}
+    .login-input{width:100%;padding:.8rem 1rem .8rem 2.4rem;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-size:.88rem;transition:var(--t);}
+    .login-input::placeholder{color:var(--text-3);}
+    .login-input:focus{border-color:var(--gold);background:var(--surface);box-shadow:0 0 0 3px rgba(201,168,76,.15);}
+    .login-btn{width:100%;padding:.85rem;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--primary) 0%,var(--primary-mid) 100%);color:#fff;font-weight:700;font-size:.88rem;transition:var(--t);margin-top:.3rem;box-shadow:0 8px 20px rgba(10,22,40,.28);}
+    .login-btn:hover{filter:brightness(1.15);transform:translateY(-1px);box-shadow:0 10px 26px rgba(10,22,40,.38);}
+    #loginError{margin-top:.9rem;font-size:.82rem;color:var(--error);display:none;background:var(--error-bg);padding:.55rem .8rem;border-radius:var(--r-sm);border:1px solid rgba(192,57,43,.2);}
+    .login-help{display:flex;align-items:center;gap:.5rem;margin-top:1.6rem;padding-top:1.2rem;border-top:1px solid var(--border-2);font-size:.78rem;color:var(--text-3);}
+    .login-help i{color:var(--text-3);font-size:.85rem;}
+    .login-help a{color:var(--warn);font-weight:600;}
+    .login-help a:hover{text-decoration:underline;}
+
+    @media (max-width:820px){
+      .login-shell{grid-template-columns:1fr;height:auto;max-height:94vh;overflow-y:auto;}
+      .login-brand{height:280px;background-position:left top;flex-shrink:0;}
+      .login-form-panel{padding:2rem 1.6rem;}
+    }
+
+    @media (max-width:480px){
+      #loginScreen{padding:.6rem;}
+      .login-brand{height:230px;}
+      .login-form-panel{padding:1.6rem 1.2rem;}
+      .login-card{max-width:100%;}
+    }
+
+    /* LAYOUT */
+    #appContent{display:none;opacity:0;transition:opacity .4s ease;height:100%;}
+    .show-app{display:grid !important;opacity:1 !important;}
+    .dashboard{grid-template-columns:256px 1fr;grid-template-rows:64px 1fr;}
+
+    /* SIDEBAR — liquid glass */
+    .sidebar{grid-row:1/-1;background:var(--surface);padding:1.2rem 1rem;display:flex;flex-direction:column;overflow-y:auto;position:relative;border-right:1px solid var(--glass-border);box-shadow:1px 0 24px rgba(15,28,48,0.05);}
+    .sidebar::after{content:'';position:absolute;top:0;right:-1px;width:1px;height:100%;background:linear-gradient(to bottom,transparent,rgba(185,154,85,.3) 30%,rgba(185,154,85,.3) 70%,transparent);}
+    .brand{display:flex;gap:.7rem;align-items:center;margin-bottom:1.8rem;padding:0 .4rem;}
+    .brand-icon{width:40px;height:40px;border-radius:12px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+    .brand-icon img{width:100%;height:100%;object-fit:contain;}
+    .brand-text{font-family:var(--font-head);font-size:1.1rem;color:var(--ink);display:block;}
+    .brand-sub{font-size:.7rem;color:var(--text-3);letter-spacing:.06em;text-transform:uppercase;display:block;margin-top:1px;}
+    .nav-label{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:0 .8rem;margin:1rem 0 .4rem;}
+    .nav-group{display:flex;flex-direction:column;gap:.2rem;}
+    .nav-item{display:flex;align-items:center;gap:.7rem;padding:.65rem .8rem;font-size:.84rem;font-weight:500;border-radius:var(--r-sm);color:var(--text-2);transition:var(--t);position:relative;cursor:pointer;}
+    .nav-item i{width:16px;text-align:center;font-size:.85rem;}
+    .nav-item:hover{color:var(--ink);background:var(--surface-2);}
+    .nav-item.active{background:var(--surface-2-solid);color:var(--warn);box-shadow:inset 2.5px 2.5px 6px var(--neo-dark),inset -2.5px -2.5px 6px var(--neo-light);}
+    .nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;background:var(--warn);border-radius:0 99px 99px 0;}
+    .nav-item.logout-item{color:var(--error);margin-top:.3rem;}
+    .nav-item.logout-item:hover{color:var(--error);background:var(--error-bg);}
+    .sidebar-footer{margin-top:auto;padding:.9rem 1rem;background:var(--info-bg);border:1px solid rgba(26,94,187,.3);border-radius:var(--r-md);font-size:.73rem;color:var(--text-2);}
+    .sidebar-footer strong{display:block;color:var(--warn);margin-bottom:.3rem;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;}
+
+    /* HEADER */
+    .header{grid-column:2;grid-row:1;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;background:var(--surface);border-bottom:1px solid var(--glass-border);position:sticky;top:0;z-index:6;gap:1rem;}
+    .header-title h1{font-family:var(--font-head);font-size:1.35rem;color:var(--ink);letter-spacing:-.02em;}
+    .header-title p{font-size:.8rem;color:var(--text-3);margin-top:1px;}
+    .header-actions{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0;}
+    .role-badge{padding:.3rem .8rem;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
+    .role-admin{background:var(--info-bg);color:var(--warn);border:1px solid rgba(26,94,187,.3);}
+    .role-manager{background:var(--info-bg);color:var(--info);border:1px solid rgba(26,94,187,.2);}
+    .role-employee{background:var(--success-bg);color:var(--success);border:1px solid rgba(13,122,78,.2);}
+
+    /* BUTTONS — soft/neomorphic: flat matching-tone surfaces with a light+dark shadow pair standing in for a bevel */
+    .admin-hamburger{display:none;width:36px;height:36px;border-radius:var(--r-sm);align-items:center;justify-content:center;background:var(--surface-2-solid);border:none;color:var(--text-2);font-size:1rem;flex-shrink:0;margin-right:.7rem;
+      box-shadow:var(--neo-dist) var(--neo-dist) var(--neo-blur) var(--neo-dark),calc(var(--neo-dist) * -1) calc(var(--neo-dist) * -1) var(--neo-blur) var(--neo-light);}
+    .admin-hamburger:hover{color:var(--ink);}
+    .admin-hamburger:active{box-shadow:inset 3px 3px 6px var(--neo-dark),inset -3px -3px 6px var(--neo-light);}
+    .theme-toggle-btn{width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--surface-2-solid);border:none;color:var(--text-2);font-size:.92rem;transition:var(--t);flex-shrink:0;
+      box-shadow:var(--neo-dist) var(--neo-dist) var(--neo-blur) var(--neo-dark),calc(var(--neo-dist) * -1) calc(var(--neo-dist) * -1) var(--neo-blur) var(--neo-light);}
+    .theme-toggle-btn:hover{color:var(--ink);transform:rotate(-14deg);}
+    .theme-toggle-btn:active{box-shadow:inset 3px 3px 6px var(--neo-dark),inset -3px -3px 6px var(--neo-light);transform:rotate(0);}
+    :root[data-theme="dark"] .theme-toggle-btn{box-shadow:var(--neo-dist) var(--neo-dist) var(--neo-blur) var(--neo-dark),calc(var(--neo-dist) * -1) calc(var(--neo-dist) * -1) var(--neo-blur) var(--neo-light);}
+    .btn{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1rem;font-size:.82rem;font-weight:600;border-radius:var(--r-pill);border:none;transition:var(--t);white-space:nowrap;}
+    .btn-primary{background:var(--primary);color:#fff;box-shadow:4px 4px 10px var(--neo-dark),-4px -4px 10px var(--neo-light),inset 0 1px 0 rgba(255,255,255,.14);}
+    .btn-primary:hover{background:var(--primary-mid);transform:translateY(-1px);}
+    .btn-primary:active{transform:translateY(0);box-shadow:inset 3px 3px 7px rgba(0,0,0,.35),inset -2px -2px 5px rgba(255,255,255,.06);}
+    .btn-gold{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-mid) 100%);color:#fff;box-shadow:4px 4px 10px var(--neo-dark),-4px -4px 10px var(--neo-light),inset 0 1px 0 rgba(255,255,255,.14);}
+    .btn-gold:hover{filter:brightness(1.15);transform:translateY(-1px);}
+    .btn-gold:active{transform:translateY(0);box-shadow:inset 3px 3px 7px rgba(0,0,0,.35),inset -2px -2px 5px rgba(255,255,255,.06);}
+    .btn-secondary{background:var(--surface-2-solid);color:var(--ink);border:none;
+      box-shadow:4px 4px 10px var(--neo-dark),-4px -4px 10px var(--neo-light);}
+    .btn-secondary:hover{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(10,22,40,.25);}
+    .btn-secondary:active{box-shadow:inset 3px 3px 7px var(--neo-dark),inset -3px -3px 7px var(--neo-light);}
+    .btn-danger{background:var(--error-bg);color:var(--error);border:none;
+      box-shadow:4px 4px 10px var(--neo-dark),-4px -4px 10px var(--neo-light);}
+    .btn-danger:hover{background:var(--error);color:#fff;box-shadow:0 2px 8px rgba(180,72,59,.3);}
+    .btn-danger:active{box-shadow:inset 3px 3px 7px var(--neo-dark),inset -3px -3px 7px var(--neo-light);}
+    .btn-sm{padding:.4rem .75rem;font-size:.76rem;}
+    .btn-icon{width:32px;height:32px;padding:0;border-radius:var(--r-sm);background:var(--surface-2-solid);color:var(--text-2);border:none;display:inline-flex;align-items:center;justify-content:center;
+      box-shadow:3px 3px 7px var(--neo-dark),-3px -3px 7px var(--neo-light);}
+    .btn-icon:hover{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(10,22,40,.25);}
+    .btn-icon:active{box-shadow:inset 2px 2px 5px var(--neo-dark),inset -2px -2px 5px var(--neo-light);}
+    .row-actions{display:flex;gap:.4rem;flex-wrap:wrap;}
+    .pill-new{background:var(--info-bg);color:var(--warn);border:1px solid rgba(26,94,187,.3);}
+    .pill-contacted{background:var(--info-bg);color:var(--info);border:1px solid rgba(26,94,187,.2);}
+    .pill-converted{background:var(--success-bg);color:var(--success);border:1px solid rgba(13,122,78,.2);}
+    .pill-lost{background:var(--error-bg);color:var(--error);border:1px solid rgba(192,57,43,.2);}
+    .status-select{border:none;border-radius:var(--r-pill);padding:.25rem .6rem;font-size:.7rem;font-weight:700;text-transform:uppercase;background:var(--surface);cursor:pointer;
+      box-shadow:inset 1.5px 1.5px 4px var(--neo-dark),inset -1.5px -1.5px 4px var(--neo-light);}
+    .checklist{display:flex;flex-direction:column;gap:.6rem;max-height:280px;overflow:auto;border:1px solid var(--border);border-radius:var(--r-md);padding:.8rem;}
+    .sched-row{display:flex;align-items:center;gap:.7rem;padding:.55rem .7rem;border:none;border-radius:var(--r-sm);background:var(--surface-2-solid);box-shadow:3px 3px 8px var(--neo-dark),-3px -3px 8px var(--neo-light);}
+    .sched-row label{display:flex;align-items:center;gap:.5rem;font-size:.84rem;font-weight:600;min-width:110px;cursor:pointer;}
+    .sched-row input[type="checkbox"]{width:16px;height:16px;accent-color:var(--ink);}
+    .sched-row .sched-dur{display:flex;align-items:center;gap:.4rem;margin-left:auto;opacity:.4;pointer-events:none;transition:var(--t);}
+    .sched-row.on .sched-dur{opacity:1;pointer-events:auto;}
+    .sched-row.on{border:1px solid var(--gold-border);background:var(--gold-soft);box-shadow:inset 2px 2px 5px var(--neo-dark),inset -2px -2px 5px var(--neo-light);}
+    .sched-row .sched-dur input{width:70px;padding:.35rem .5rem;border-radius:var(--r-sm);border:1px solid var(--border);font-size:.82rem;background:var(--surface);}
+    .sched-badge{display:inline-flex;align-items:center;gap:.3rem;padding:.18rem .55rem;border-radius:var(--r-pill);background:var(--info-bg);color:var(--warn);font-size:.68rem;font-weight:700;border:1px solid rgba(26,94,187,.25);}
+    .checklist label{display:flex;align-items:center;gap:.6rem;font-size:.82rem;cursor:pointer;}
+    .checklist input[type="checkbox"]{width:15px;height:15px;accent-color:var(--gold);}
+
+    /* MAIN */
+    .main{grid-column:2;grid-row:2;overflow:auto;padding:1.4rem 1.5rem;display:grid;gap:1.2rem;align-content:flex-start;}
+    .page{display:none;}
+    .page.active{display:block;}
+
+    /* CARDS */
+    .card{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--glass-border);box-shadow:var(--shadow-sm),var(--glass-inset),6px 6px 16px var(--neo-dark),-6px -6px 16px var(--neo-light);padding:1.2rem 1.3rem;transition:box-shadow var(--t);}
+    #dashGrid .card{border-radius:22px;}
+    .panel{display:flex;flex-direction:column;gap:1rem;}
+    .panel-head h2{font-family:var(--font-head);font-size:1.2rem;color:var(--ink);letter-spacing:-.02em;}
+    .panel-head p{font-size:.8rem;color:var(--text-3);margin-top:2px;}
+    .panel-head{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+
+    /* STATS — bento tiles, liquid glass */
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;}
+    .stat-card{padding:1.15rem 1.25rem;border-radius:20px;background:var(--surface);border:1px solid var(--glass-border);box-shadow:var(--shadow-sm),var(--glass-inset),6px 6px 16px var(--neo-dark),-6px -6px 16px var(--neo-light);position:relative;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease;}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md),var(--glass-inset),8px 8px 20px var(--neo-dark),-8px -8px 20px var(--neo-light);}
+    /* soft specular highlight, like light caught in glass */
+    .stat-card::after{content:'';position:absolute;top:-40%;right:-25%;width:75%;height:130%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0) 65%);pointer-events:none;transform:rotate(-12deg);}
+    .stat-label{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);}
+    .stat-value{font-family:var(--font-mono);font-size:1.6rem;margin-top:.3rem;color:var(--ink);line-height:1;}
+    .stat-help{margin-top:.3rem;font-size:.76rem;color:var(--text-3);}
+    /* bento tint variety — same glass treatment, just a whisper of hue per tile so none reads "funky" */
+    .stats .stat-card:nth-child(1),
+    #epHomeStats .stat-card:nth-child(1){background:linear-gradient(160deg,rgba(59,106,160,0.22) 0%,rgba(59,106,160,0.1) 100%);border-color:rgba(59,106,160,0.22);}
+    .stats .stat-card:nth-child(2),#epHomeStats .stat-card:nth-child(2){background:linear-gradient(160deg,rgba(185,154,85,0.2) 0%,rgba(185,154,85,0.08) 100%);border-color:var(--gold-border);}
+    .stats .stat-card:nth-child(3),#epHomeStats .stat-card:nth-child(3){background:linear-gradient(160deg,rgba(59,106,160,0.16) 0%,rgba(59,106,160,0.06) 100%);border-color:rgba(59,106,160,0.18);}
+    .stats .stat-card:nth-child(4),#epHomeStats .stat-card:nth-child(4){background:linear-gradient(160deg,rgba(61,122,94,0.18) 0%,rgba(61,122,94,0.07) 100%);border-color:rgba(61,122,94,0.2);}
+
+    /* FORM */
+    .form-grid{display:grid;gap:.9rem;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+    .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.9rem;}
+    .field{display:flex;flex-direction:column;gap:.3rem;}
+    .field label{font-size:.79rem;font-weight:600;color:var(--text-2);letter-spacing:.01em;}
+    .field label .req{color:var(--error);margin-left:2px;}
+    .input,.textarea,.select-input{padding:.7rem .9rem;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);font-size:.88rem;transition:var(--t);color:var(--text);
+      box-shadow:inset 2px 2px 5px var(--neo-dark),inset -2px -2px 5px var(--neo-light);}
+    .input:focus,.textarea:focus,.select-input:focus{border-color:var(--ink);background:var(--surface-strong);box-shadow:inset 2px 2px 5px var(--neo-dark),inset -2px -2px 5px var(--neo-light),0 0 0 3px rgba(10,22,40,.07);}
+    .textarea{min-height:72px;resize:vertical;}
+    .form-section-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);display:flex;align-items:center;gap:.5rem;padding:.4rem 0;}
+    .form-section-title::after{content:'';flex:1;height:1px;background:var(--border-2);}
+    .muted-note{font-size:.74rem;color:var(--text-3);}
+    .info-box{padding:.75rem 1rem;border-radius:var(--r-md);background:var(--info-bg);border:1px solid rgba(26,94,187,.2);font-size:.82rem;color:var(--info);}
+    .modal-alert{font-size:.82rem;padding:.6rem .8rem;border-radius:var(--r-sm);margin-bottom:.8rem;display:none;}
+    .modal-alert.show{display:block;}
+    .modal-alert.error{background:var(--error-bg);color:var(--error);}
+    .modal-alert.success{background:var(--success-bg);color:var(--success);}
+    .perf-log-divider{display:flex;align-items:center;gap:.8rem;margin:1.2rem 0 .9rem;color:var(--text-3);font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
+    .perf-log-divider::before,.perf-log-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+    .perf-entry{border:1px solid var(--border);border-radius:var(--r-md);padding:.9rem 1rem;margin-bottom:.7rem;background:var(--surface-2);}
+    .perf-entry-head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.4rem;flex-wrap:wrap;}
+    .perf-entry-subject{font-weight:700;color:var(--ink);font-size:.86rem;}
+    .perf-entry-date{font-size:.72rem;color:var(--text-3);}
+    .perf-entry-note{font-size:.82rem;color:var(--text);line-height:1.5;white-space:pre-wrap;}
+    .perf-entry-meta{font-size:.7rem;color:var(--text-3);margin-top:.5rem;display:flex;align-items:center;justify-content:space-between;gap:.6rem;}
+    .perf-entry-del{background:none;border:none;color:var(--error);cursor:pointer;font-size:.7rem;font-weight:600;}
+    .success-box{padding:.75rem 1rem;border-radius:var(--r-md);background:var(--success-bg);border:1px solid rgba(13,122,78,.2);font-size:.82rem;color:var(--success);}
+
+    /* TABLE */
+    .table-wrap{overflow:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r-md);border:1px solid var(--glass-border);background:var(--surface);}
+    table{width:100%;border-collapse:collapse;background:transparent;}
+    table th{white-space:nowrap;}
+    table td{white-space:nowrap;}
+    th,td{padding:.75rem .9rem;border-bottom:1px solid var(--border-2);font-size:.82rem;text-align:left;}
+    th{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;background:rgba(255,255,255,0.35);color:var(--text-2);font-weight:700;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:rgba(255,255,255,0.4);}
+
+    /* PILLS */
+    .pill{display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .65rem;border-radius:var(--r-pill);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+    .pill-active{background:var(--success-bg);color:var(--success);border:1px solid rgba(13,122,78,.2);}
+    .pill-inactive{background:var(--error-bg);color:var(--error);border:1px solid rgba(192,57,43,.2);}
+    .pill-pending{background:var(--warn-bg);color:var(--warn);border:1px solid rgba(26,94,187,.2);}
+    .pill-approved{background:var(--success-bg);color:var(--success);border:1px solid rgba(13,122,78,.2);}
+    .pill-rejected{background:var(--error-bg);color:var(--error);border:1px solid rgba(192,57,43,.2);}
+    .pill-admin{background:var(--info-bg);color:var(--warn);}
+    .pill-manager{background:var(--info-bg);color:var(--info);}
+    .pill-employee{background:var(--success-bg);color:var(--success);}
+    .pill-present{background:var(--success-bg);color:var(--success);}
+    .pill-absent{background:var(--error-bg);color:var(--error);}
+    .pill-checkedin{background:var(--info-bg);color:var(--info);}
+    .pill-nowork{background:var(--surface-2);color:var(--text-3);border:1px solid var(--border);}
+
+    /* MINI BTN */
+    .mini-btn{padding:.3rem .7rem;border-radius:var(--r-pill);font-size:.75rem;font-weight:600;border:none;background:var(--surface-2-solid);color:var(--text-2);transition:var(--t);
+      box-shadow:3px 3px 6px var(--neo-dark),-3px -3px 6px var(--neo-light);}
+    .mini-btn:hover{background:var(--primary);color:#fff;box-shadow:0 2px 6px rgba(10,22,40,.25);}
+    .mini-btn:active{box-shadow:inset 2px 2px 5px var(--neo-dark),inset -2px -2px 5px var(--neo-light);}
+    .mini-btn-danger{color:var(--error);border-color:var(--error-bg);background:var(--error-bg);}
+    .mini-btn-danger:hover{background:var(--error);color:#fff;}
+    .mini-btn-success{color:var(--success);border-color:var(--success-bg);background:var(--success-bg);}
+    .mini-btn-success:hover{background:var(--success);color:#fff;}
+    .mini-btn-gold{color:var(--warn);border-color:var(--warn-bg);background:var(--warn-bg);}
+
+    /* MODAL */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(10,22,40,.5);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:1.5rem;z-index:10000;opacity:0;transition:opacity .25s ease;}
+    .modal-backdrop.open{display:flex;opacity:1;}
+    /* Pause Sessions modal can be opened while Client Detail (or other) modals are still open behind it —
+       it needs a higher z-index than the base modal layer so it actually renders in front instead of
+       being buried by whichever modal happens to sit later in the DOM. */
+    #adminPauseModal{z-index:10001;}
+    .modal{background:var(--surface-strong);backdrop-filter:var(--blur-lg);-webkit-backdrop-filter:var(--blur-lg);border-radius:var(--r-xl);border:1px solid var(--glass-border);max-width:860px;width:100%;max-height:90vh;overflow:auto;padding:1.5rem;box-shadow:var(--shadow-lg),var(--glass-inset),10px 10px 26px var(--neo-dark),-10px -10px 26px var(--neo-light);}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem;padding-bottom:.9rem;border-bottom:1px solid var(--border-2);}
+    .modal-head h2{font-family:var(--font-head);font-size:1.3rem;color:var(--ink);letter-spacing:-.02em;}
+    .modal-close{width:32px;height:32px;border-radius:var(--r-sm);background:var(--surface-2-solid);border:none;display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--text-3);transition:var(--t);
+      box-shadow:3px 3px 6px var(--neo-dark),-3px -3px 6px var(--neo-light);}
+    .modal-close:hover{background:var(--error-bg);color:var(--error);box-shadow:0 2px 6px rgba(180,72,59,.2);}
+    .modal-close:active{box-shadow:inset 2px 2px 5px var(--neo-dark),inset -2px -2px 5px var(--neo-light);}
+
+    /* TOOLBAR */
+    .toolbar{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;}
+    .search{padding:.65rem 1rem;border-radius:var(--r-pill);border:1px solid var(--border);background:var(--surface);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);font-size:.85rem;transition:var(--t);flex:1;min-width:200px;
+      box-shadow:inset 2px 2px 5px var(--neo-dark),inset -2px -2px 5px var(--neo-light);}
+    .search:focus{border-color:var(--ink);box-shadow:inset 2px 2px 5px var(--neo-dark),inset -2px -2px 5px var(--neo-light),0 0 0 3px rgba(10,22,40,.07);}
+    .select-filter{padding:.6rem 1rem;border-radius:var(--r-pill);border:1px solid var(--border);background:var(--surface);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);font-size:.85rem;transition:var(--t);
+      box-shadow:inset 2px 2px 5px var(--neo-dark),inset -2px -2px 5px var(--neo-light);}
+
+    /* EMPLOYEE CARD */
+    .emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;}
+    .emp-card{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--glass-border);box-shadow:var(--glass-inset),5px 5px 14px var(--neo-dark),-5px -5px 14px var(--neo-light);padding:1.1rem;transition:box-shadow var(--t),border-color var(--t);}
+    .emp-card:hover{border-color:rgba(10,22,40,.14);box-shadow:var(--shadow-md),var(--glass-inset);}
+    .emp-card-top{display:flex;gap:.8rem;align-items:flex-start;margin-bottom:.8rem;}
+    .emp-avatar{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-mid));color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:1.1rem;flex-shrink:0;}
+    .emp-name{font-family:var(--font-head);font-size:1rem;color:var(--ink);letter-spacing:-.01em;}
+    .emp-title{font-size:.77rem;color:var(--text-3);margin-top:1px;}
+    .emp-meta{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;font-size:.76rem;}
+    .emp-meta-item{display:flex;flex-direction:column;gap:.1rem;}
+    .emp-meta-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);}
+    .emp-meta-value{color:var(--text);font-family:var(--font-mono);font-size:.74rem;}
+    .emp-actions{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.8rem;padding-top:.7rem;border-top:1px solid var(--border-2);}
+
+    /* ATTENDANCE CLOCK */
+    .clock-card{background:linear-gradient(135deg,var(--primary),var(--primary-mid));border-radius:var(--r-xl);padding:2rem;color:#fff;text-align:center;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.1);box-shadow:var(--shadow-lg);}
+    .clock-card::before{content:'';position:absolute;top:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.18),transparent 70%);}
+    .clock-time{font-family:var(--font-mono);font-size:3rem;letter-spacing:-.02em;color:#E2BC5E;line-height:1;}
+    .clock-date{font-size:.85rem;color:rgba(255,255,255,.6);margin-top:.4rem;}
+    .clock-status{margin-top:1.2rem;font-size:.83rem;color:rgba(255,255,255,.7);}
+    .clock-btns{display:flex;gap:.8rem;justify-content:center;margin-top:1.2rem;flex-wrap:wrap;}
+    .clock-in-btn{padding:.85rem 2rem;border-radius:var(--r-pill);background:linear-gradient(135deg,var(--primary) 0%,var(--primary-mid) 100%);color:#fff;font-weight:700;font-size:.9rem;transition:var(--t);border:none;
+      box-shadow:4px 4px 10px rgba(0,0,0,.35),-4px -4px 10px rgba(255,255,255,.06),inset 0 1px 0 rgba(255,255,255,.16);}
+    .clock-in-btn:hover{filter:brightness(1.06);transform:translateY(-1px);}
+    .clock-in-btn:active{transform:translateY(0);box-shadow:inset 3px 3px 7px rgba(0,0,0,.4),inset -2px -2px 5px rgba(255,255,255,.04);}
+    .clock-out-btn{padding:.85rem 2rem;border-radius:var(--r-pill);background:rgba(255,255,255,.12);color:#fff;border:none;font-weight:700;font-size:.9rem;transition:var(--t);
+      box-shadow:4px 4px 10px rgba(0,0,0,.3),-4px -4px 10px rgba(255,255,255,.05);}
+    .clock-out-btn:hover{background:rgba(255,255,255,.2);}
+    .clock-out-btn:active{box-shadow:inset 3px 3px 7px rgba(0,0,0,.35),inset -2px -2px 5px rgba(255,255,255,.04);}
+    .session-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.1rem;border:none;border-radius:var(--r-md);background:var(--surface-2-solid);box-shadow:4px 4px 10px var(--neo-dark),-4px -4px 10px var(--neo-light);flex-wrap:wrap;}
+    .session-row-name{font-weight:700;font-size:.9rem;color:var(--ink);}
+    .session-row-meta{font-size:.78rem;color:var(--text-3);margin-top:.15rem;}
+    .session-row-actions{flex-shrink:0;}
+
+    /* TOAST */
+    .toast{position:fixed;right:1.2rem;bottom:1.2rem;max-width:300px;background:rgba(10,22,40,0.82);color:#fff;padding:.8rem 1.1rem;border-radius:var(--r-md);border:1px solid rgba(255,255,255,0.12);box-shadow:var(--shadow-lg);font-size:.83rem;font-weight:500;opacity:0;transform:translateY(12px) scale(.97);transition:.25s cubic-bezier(.34,1.56,.64,1);z-index:10001;display:flex;align-items:center;gap:.6rem;}
+    .toast.error{background:rgba(120,42,34,0.88);}
+    .toast.show{opacity:1;transform:translateY(0) scale(1);}
+
+    /* EMPTY */
+    .empty{padding:3rem 1.5rem;text-align:center;border-radius:var(--r-lg);border:1.5px dashed var(--border);background:var(--surface-2);font-size:.87rem;color:var(--text-3);}
+    .empty-icon{font-size:2rem;margin-bottom:.8rem;opacity:.4;}
+    .empty h3{font-family:var(--font-head);font-size:1.1rem;color:var(--text-2);margin-bottom:.3rem;}
+
+    /* EMPLOYEE PORTAL */
+    #empPortalScreen,#clientPortalScreen{display:none;position:fixed;inset:0;z-index:100;background:transparent;flex-direction:column;overflow:auto;opacity:0;transition:opacity .4s ease;}
+    #empPortalScreen.ep-visible,#clientPortalScreen.ep-visible{display:flex;opacity:1;}
+    .ep-header{background:var(--surface);color:var(--text);padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid var(--glass-border);box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:6;}
+    .ep-brand{display:flex;align-items:center;gap:.8rem;}
+    .ep-brand-icon{width:36px;height:36px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+    .ep-brand-icon img{width:100%;height:100%;object-fit:contain;}
+    .ep-brand-name{font-family:var(--font-head);font-size:1.05rem;color:var(--ink);}
+    .ep-brand-sub{font-size:.7rem;color:var(--text-3);}
+    .ep-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.22rem .7rem;border-radius:var(--r-pill);background:var(--info-bg);color:var(--warn);font-size:.72rem;font-weight:700;border:1px solid rgba(26,94,187,.3);text-transform:uppercase;letter-spacing:.05em;}
+    .ep-logout-btn{display:flex;align-items:center;gap:.5rem;padding:.48rem 1rem;border-radius:var(--r-pill);background:var(--surface-2);color:var(--text-2);border:1px solid var(--border);font-size:.81rem;font-weight:600;transition:var(--t);}
+    .ep-logout-btn:hover{background:var(--error-bg);color:var(--error);border-color:rgba(192,57,43,.2);}
+    .ep-body{flex:1;overflow-y:auto;padding:1.5rem;}
+    .ep-main{max-width:1000px;margin:0 auto;display:grid;gap:1.2rem;}
+    .ep-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-pill);padding:.35rem;}
+    .ep-tab{display:inline-flex;align-items:center;gap:.45rem;padding:.6rem 1.15rem;border-radius:var(--r-pill);font-size:.82rem;font-weight:600;border:1px solid transparent;background:transparent;color:var(--text-2);transition:var(--t);}
+    .ep-tab:hover{color:var(--ink);}
+    .ep-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 6px 16px rgba(10,22,40,.2);}
+    .ep-tab-panel{display:none;}
+    .ep-tab-panel.active{display:block;}
+
+    /* ─── CLIENT PORTAL (parent dashboard) — dedicated layout ─── */
+    .cp-shell{display:grid;grid-template-columns:256px 1fr;grid-template-rows:64px 1fr;height:100%;}
+    .cp-header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;background:var(--surface);border-bottom:1px solid var(--border);gap:1rem;flex-shrink:0;}
+    .cp-header-left{display:flex;align-items:center;gap:.85rem;}
+    .cp-header-actions{display:flex;align-items:center;gap:.8rem;flex-shrink:0;}
+    .cp-notif-wrap{position:relative;}
+    .cp-hamburger{display:none;width:38px;height:38px;border-radius:var(--r-sm);align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--border);color:var(--text-2);font-size:1rem;flex-shrink:0;}
+    .cp-hamburger:hover{background:var(--gold-soft);color:var(--ink);}
+    .cp-bell{position:relative;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--border);color:var(--text-2);font-size:.95rem;transition:var(--t);}
+    .cp-bell:hover{color:var(--ink);background:var(--gold-soft);}
+    .cp-bell.active{color:var(--ink);background:var(--gold-soft);border-color:var(--gold-border);}
+    .cp-bell .cp-bell-dot{position:absolute;top:-3px;right:-3px;min-width:16px;height:16px;padding:0 3px;border-radius:50%;background:var(--gold);color:var(--ink-strong);font-size:.6rem;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);}
+    .cp-notif-panel{position:absolute;top:calc(100% + 12px);right:0;width:340px;max-height:420px;display:none;flex-direction:column;background:var(--surface-strong);border:1px solid var(--glass-border);border-radius:var(--r-lg);box-shadow:var(--shadow-lg),var(--glass-inset);z-index:80;overflow:hidden;}
+    .cp-notif-panel.open{display:flex;}
+    .cp-notif-panel-head{padding:.85rem 1rem;font-family:var(--font-head);font-size:.98rem;color:var(--ink);border-bottom:1px solid var(--border-2);flex-shrink:0;}
+    .cp-notif-list{overflow-y:auto;flex:1;}
+    .cp-notif-item{display:flex;gap:.7rem;align-items:flex-start;padding:.8rem 1rem;border-bottom:1px solid var(--border-2);transition:var(--t);}
+    .cp-notif-item:last-child{border-bottom:none;}
+    .cp-notif-item:hover{background:var(--surface-2);}
+    .cp-notif-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+    .cp-notif-icon.violet,.cp-notif-icon.blue{background:var(--info-bg);color:var(--warn);}
+    .cp-notif-icon.teal,.cp-notif-icon.green{background:var(--success-bg);color:var(--success);}
+    .cp-notif-body{min-width:0;}
+    .cp-notif-title{font-size:.82rem;font-weight:600;color:var(--text);line-height:1.4;}
+    .cp-notif-sub{font-size:.75rem;color:var(--text-3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .cp-notif-date{font-size:.68rem;color:var(--text-3);margin-top:3px;}
+    .cp-notif-empty{display:flex;flex-direction:column;align-items:center;gap:.5rem;padding:2.2rem 1rem;color:var(--text-3);font-size:.82rem;text-align:center;}
+    .cp-notif-empty i{font-size:1.4rem;}
+
+    .cp-sidebar{grid-row:2;background:var(--surface);padding:1.2rem 1rem;display:flex;flex-direction:column;overflow-y:auto;position:relative;border-right:1px solid var(--glass-border);}
+    .cp-sidebar::after{content:'';position:absolute;top:0;right:-1px;width:1px;height:100%;background:linear-gradient(to bottom,transparent,rgba(185,154,85,.3) 30%,rgba(185,154,85,.3) 70%,transparent);}
+    .cp-sidebar-footer{margin-top:auto;display:flex;flex-direction:column;gap:.7rem;padding-top:1rem;}
+    .cp-footer-card{padding:1rem .9rem;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);text-align:center;}
+    .cp-footer-card .cp-footer-illus{width:64px;height:64px;margin:0 auto .6rem;border-radius:50%;background:var(--gold-soft);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:1.4rem;}
+    .cp-footer-card p{font-size:.78rem;color:var(--text-2);line-height:1.5;}
+    .cp-help-card{display:flex;align-items:center;gap:.7rem;padding:.8rem .9rem;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);}
+    .cp-help-card i{width:34px;height:34px;border-radius:50%;background:var(--info-bg);color:var(--warn);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.85rem;}
+    .cp-help-card strong{display:block;font-size:.8rem;color:var(--ink);}
+    .cp-help-card span{font-size:.75rem;color:var(--text-3);}
+    .cp-help-card a{color:inherit;}
+
+    .cp-main{grid-row:2;overflow-y:auto;padding:1.6rem;}
+    .cp-main-inner{max-width:1180px;margin:0 auto;display:grid;gap:1.1rem;}
+
+    .cp-hero{position:relative;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.4rem .2rem 1rem;overflow:hidden;}
+    .cp-hero h1{font-family:var(--font-head);font-size:1.9rem;color:var(--ink);letter-spacing:-.02em;display:flex;align-items:center;gap:.5rem;}
+    .cp-hero .wave{display:inline-block;animation:wave 2.2s ease-in-out infinite;transform-origin:70% 70%;}
+    .cp-hero p{font-size:.92rem;color:var(--text-3);margin-top:.25rem;}
+    .cp-hero p strong{color:var(--ink);font-weight:700;}
+    .cp-hero-illus{position:relative;width:220px;height:110px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;gap:.6rem;}
+    .cp-hero-illus .glow{position:absolute;width:180px;height:180px;top:-40px;right:10px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,0.16) 0%,transparent 70%);}
+    .cp-hi-item{position:relative;display:flex;align-items:center;justify-content:center;border-radius:14px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-sm);color:var(--gold);}
+    .cp-hi-books{width:50px;height:50px;font-size:1.15rem;}
+    .cp-hi-plant{width:56px;height:70px;font-size:1.3rem;color:#4E9F63;transform:translateY(-4px);}
+    .cp-hi-lamp{width:44px;height:44px;font-size:1rem;color:var(--warn);position:absolute;top:-14px;right:6px;transform:rotate(10deg);}
+
+    .cp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;}
+    .cp-stat-card{display:flex;align-items:flex-start;gap:.85rem;padding:1.1rem 1.15rem;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--glass-border);box-shadow:var(--shadow-sm),var(--glass-inset),6px 6px 16px var(--neo-dark),-6px -6px 16px var(--neo-light);transition:var(--t);}
+    .cp-stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md),var(--glass-inset),8px 8px 20px var(--neo-dark),-8px -8px 20px var(--neo-light);}
+    .cp-stat-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0;}
+    .cp-stat-icon.violet,.cp-stat-icon.blue{background:var(--info-bg);color:var(--warn);}
+    .cp-stat-icon.teal,.cp-stat-icon.green{background:var(--success-bg);color:var(--success);}
+    .cp-stat-body .stat-label{display:block;}
+    .cp-stat-body .stat-value{font-family:var(--font-head);font-size:1.15rem;margin-top:.15rem;}
+    .cp-stat-body .stat-help{margin-top:.1rem;}
+
+    .cp-panel-icon{width:42px;height:42px;border-radius:12px;background:var(--info-bg);color:var(--warn);display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0;}
+    .cp-panel-head-row{display:flex;align-items:flex-start;gap:.8rem;}
+    .cp-range-select{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem .9rem;border-radius:var(--r-pill);border:1px solid var(--border);background:var(--surface);font-size:.8rem;font-weight:600;color:var(--text-2);cursor:pointer;}
+
+    .cp-empty{padding:3rem 1.5rem;text-align:center;border-radius:var(--r-lg);border:1.5px dashed var(--border);background:var(--surface-2);}
+    .cp-empty-illus{position:relative;width:120px;height:120px;margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;}
+    .cp-empty-illus .glow{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,0.14) 0%,transparent 72%);}
+    .cp-empty-illus i.main-i{position:relative;font-size:3.4rem;color:var(--gold);}
+    .cp-empty-illus i.spark{position:absolute;top:2px;left:6px;font-size:.85rem;color:var(--gold);}
+    .cp-empty-illus i.badge-i{position:absolute;bottom:6px;right:2px;width:30px;height:30px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--ink);box-shadow:var(--shadow-sm);}
+    .cp-empty h3{font-family:var(--font-head);font-size:1.15rem;color:var(--ink);margin-bottom:.35rem;}
+    .cp-empty p{font-size:.84rem;color:var(--text-3);max-width:360px;margin:0 auto;line-height:1.55;}
+
+    @media (max-width:900px){
+      .cp-shell{grid-template-columns:1fr;}
+      .cp-sidebar{
+        position:fixed;top:64px;left:0;bottom:0;z-index:150;width:78vw;max-width:300px;
+        transform:translateX(-100%);transition:transform .28s ease;box-shadow:var(--shadow-lg);
+      }
+      .cp-sidebar.mobile-open{transform:translateX(0);}
+      .cp-sidebar-backdrop{position:fixed;inset:64px 0 0 0;background:rgba(10,22,40,.45);z-index:140;display:none;}
+      .cp-sidebar-backdrop.show{display:block;}
+      .cp-hamburger{display:flex !important;}
+      .cp-hero-illus{display:none;}
+      .cp-stats{grid-template-columns:repeat(2,1fr);}
+      #epHomeStats{grid-template-columns:1fr 1fr !important;}
+      .ep-detail-grid{grid-template-columns:1fr 1fr !important;}
+      .report-card-body{grid-template-columns:1fr 1fr !important;}
+      .cp-main,.ep-body{padding:1rem !important;}
+      .cp-header{padding:0 .8rem !important;}
+      .ep-brand-sub{display:none;}
+      .ep-badge{display:none;}
+    }
+    @media (max-width:480px){
+      #epHomeStats{grid-template-columns:1fr !important;}
+      .ep-detail-grid{grid-template-columns:1fr !important;}
+      .report-card-body{grid-template-columns:1fr 1fr !important;}
+      .cp-stats{grid-template-columns:1fr !important;}
+      .cp-hero{flex-direction:column;align-items:flex-start;}
+      .cp-hero h1{font-size:1.5rem;}
+      .session-row{flex-direction:column;align-items:flex-start;}
+      .session-row-actions{width:100%;}
+      .session-row-actions .btn{width:100%;justify-content:center;}
+      .sched-row{flex-wrap:wrap;}
+      .sched-row label{min-width:0;flex:1 1 auto;}
+      .sched-row .sched-dur{margin-left:0;width:100%;justify-content:flex-end;}
+    }
+    .ep-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+
+    /* PROFILE PHOTO */
+    .profile-photo-wrap{position:relative;width:90px;height:90px;flex-shrink:0;}
+    .profile-photo{width:90px;height:90px;border-radius:18px;object-fit:cover;border:2px solid var(--gold-border);background:linear-gradient(135deg,var(--primary),var(--primary-mid));}
+    .profile-photo-initials{width:90px;height:90px;border-radius:18px;background:linear-gradient(135deg,var(--primary),var(--primary-mid));color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:2rem;border:2px solid var(--gold-border);}
+    .photo-upload-btn{position:absolute;bottom:-6px;right:-6px;width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--ink-strong);display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;border:2px solid #fff;box-shadow:var(--shadow-sm);transition:var(--t);}
+    .photo-upload-btn:hover{filter:brightness(1.1);}
+    .emp-avatar-photo{width:44px;height:44px;border-radius:12px;object-fit:cover;flex-shrink:0;}
+
+    /* MONTHLY REPORT */
+    .report-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:1rem;}
+    .report-card{background:var(--surface);border:1px solid var(--glass-border);border-radius:var(--r-lg);box-shadow:var(--glass-inset),5px 5px 14px var(--neo-dark),-5px -5px 14px var(--neo-light);overflow:hidden;}
+    .report-card-head{background:linear-gradient(135deg,var(--primary),var(--primary-mid));color:#fff;padding:.8rem 1rem;display:flex;align-items:center;gap:.7rem;}
+    .report-card-avatar{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:.95rem;color:#fff;flex-shrink:0;overflow:hidden;}
+    .report-card-avatar img{width:100%;height:100%;object-fit:cover;border-radius:10px;}
+    .report-card-name{font-family:var(--font-head);font-size:.95rem;line-height:1.2;}
+    .report-card-meta{font-size:.7rem;color:rgba(255,255,255,.55);margin-top:1px;}
+    .report-card-body{padding:.85rem 1rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;}
+    .report-stat{display:flex;flex-direction:column;gap:.1rem;}
+    .report-stat-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);}
+    .report-stat-value{font-family:var(--font-mono);font-size:.9rem;font-weight:700;color:var(--ink);}
+    .report-card-bank{padding:.6rem 1rem;border-top:1px solid var(--border-2);background:var(--surface-2);font-size:.76rem;color:var(--text-2);display:flex;gap:1.2rem;flex-wrap:wrap;}
+    .report-card-bank span{display:flex;flex-direction:column;gap:.1rem;}
+    .report-card-bank strong{font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);}
+    .pill-regularized{background:var(--info-bg);color:var(--warn);border:1px solid rgba(59,106,160,.2);}
+
+    /* DOCUMENT UPLOAD */
+    .doc-drop-zone{border:2px dashed var(--border);border-radius:var(--r-lg);padding:2rem;text-align:center;cursor:pointer;transition:var(--t);background:var(--surface-2);}
+    .doc-drop-zone:hover,.doc-drop-zone.drag-over{border-color:var(--gold);background:var(--gold-soft);}
+    .doc-drop-zone i{font-size:2rem;color:var(--text-3);margin-bottom:.5rem;display:block;}
+    .doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.8rem;margin-top:1rem;}
+    .doc-card{background:var(--surface);border:1px solid var(--glass-border);border-radius:var(--r-md);box-shadow:var(--glass-inset),4px 4px 12px var(--neo-dark),-4px -4px 12px var(--neo-light);padding:.9rem;display:flex;flex-direction:column;gap:.5rem;transition:box-shadow var(--t);}
+    .doc-card:hover{box-shadow:var(--shadow-md),var(--glass-inset);}
+    .doc-card:hover{box-shadow:var(--shadow-md),var(--glass-inset);}
+    .doc-card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;background:var(--surface-2);border:1px solid var(--border-2);}
+    .doc-card-name{font-size:.83rem;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .doc-card-meta{font-size:.72rem;color:var(--text-3);}
+    .doc-card-actions{display:flex;gap:.4rem;margin-top:.3rem;}
+    .upload-progress{height:4px;border-radius:99px;background:var(--border);margin-top:.5rem;overflow:hidden;}
+    .upload-progress-bar{height:100%;background:linear-gradient(90deg,#E2BC5E,#C9A84C);border-radius:99px;transition:width .3s ease;}
+
+    @media(max-width:1100px){.stats{grid-template-columns:repeat(2,1fr);} .emp-grid{grid-template-columns:1fr;}}
+    @media(max-width:860px){
+      html,body{overflow:auto;height:auto;}
+      .dashboard{display:block;}
+      .sidebar{
+        position:fixed;top:0;left:0;bottom:0;z-index:250;width:78vw;max-width:300px;
+        transform:translateX(-100%);transition:transform .28s ease;box-shadow:var(--shadow-lg);
+      }
+      .sidebar.mobile-open{transform:translateX(0);}
+      .sidebar-backdrop{position:fixed;inset:0;background:rgba(10,22,40,.45);z-index:240;display:none;}
+      .sidebar-backdrop.show{display:block;}
+      .admin-hamburger{display:flex !important;}
+      .main{padding:1rem;}
+      .form-row,.form-row-3{grid-template-columns:1fr;}
+      .ep-grid-2{grid-template-columns:1fr;}
+      .header{padding:0 1rem;flex-wrap:wrap;row-gap:.5rem;}
+      .header-title h1{font-size:1.1rem;}
+      table{font-size:.78rem;}
+      th,td{padding:.55rem .6rem !important;}
+    }
+    @media(max-width:560px){
+      .stats{grid-template-columns:1fr;}
+      .modal-backdrop{padding:.6rem;}
+      .modal{padding:1.1rem;max-height:94vh;}
+      .modal-head h2{font-size:1.05rem;}
+      .modal-head{flex-wrap:wrap;gap:.5rem;}
+      .form-row,.form-row-3{grid-template-columns:1fr;}
+      .checklist{max-height:220px;}
+    }
+  </style>
+</head>
+<body>
+<!-- Decorative liquid-glass orbs — fixed behind all screens, purely ambient -->
+<div class="orb orb-1" aria-hidden="true"></div>
+<div class="orb orb-2" aria-hidden="true"></div>
+<!-- BOOT SPLASH (shown until Firebase resolves auth state) -->
+<div id="bootSplash" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:var(--bg);transition:opacity .3s ease;">
+  <div style="text-align:center;">
+    <div style="font-size:2.4rem;color:var(--gold);margin-bottom:1rem;"><i class="fa-solid fa-spinner fa-spin"></i></div>
+    <div style="font-family:var(--font-head);font-size:1.3rem;color:var(--ink);">Workspace</div>
+    <div style="font-size:.82rem;color:var(--text-2);margin-top:.3rem;">Loading…</div>
+  </div>
+</div>
+<!-- LOGIN -->
+<div id="loginScreen" style="display:none;opacity:0;">
+  <div class="login-shell">
+    <button type="button" class="theme-toggle-btn" onclick="toggleWorkspaceTheme()" title="Toggle dark mode" aria-label="Toggle dark mode" style="position:absolute;top:14px;right:14px;z-index:2;"><i class="fa-solid fa-moon"></i></button>
+
+    <!-- Brand / illustration panel — pure background image, no overlay content -->
+    <div class="login-brand"></div>
+
+    <!-- Form panel -->
+    <div class="login-form-panel">
+      <div class="login-card">
+        <span class="login-role-badge"><i class="fa-solid fa-user-shield"></i>&ensp;ADMIN · EMPLOYEE · PARENT</span>
+        <h2>Welcome back <span class="wave">👋</span></h2>
+        <p>Sign in to access your Workspace dashboard.</p>
+        <form id="loginForm">
+          <label class="login-label" for="loginEmail">Email address</label>
+          <div class="login-input-wrap">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" id="loginEmail" class="login-input" placeholder="you@example.com" required>
+          </div>
+          <label class="login-label" for="loginPassword">Password</label>
+          <div class="login-input-wrap">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="loginPassword" class="login-input" placeholder="Enter your password" required>
+          </div>
+          <button type="submit" class="login-btn" id="loginBtnEl"><i class="fa-solid fa-lock"></i>&ensp;Secure Login</button>
+        </form>
+        <div id="loginError"></div>
+        <div class="login-help">
+          <i class="fa-solid fa-headset"></i>
+          <span>Need help? <a href="https://wa.me/918088033983" target="_blank" rel="noopener">Contact Support</a></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- EMPLOYEE PORTAL -->
+<div id="empPortalScreen">
+  <div class="cp-shell">
+    <header class="cp-header">
+      <div class="cp-header-left">
+        <button class="cp-hamburger" onclick="toggleCpSidebar('empPortalScreen')" title="Menu"><i class="fa-solid fa-bars"></i></button>
+        <div class="ep-brand-icon"><img src="logo.png" alt="Logo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 36 36%22><rect width=%2236%22 height=%2236%22 rx=%228%22 fill=%22rgba(201,168,76,0.3)%22/><text x=%2218%22 y=%2225%22 text-anchor=%22middle%22 font-size=%2216%22>🏢</text></svg>'"></div>
+        <div>
+          <div class="ep-brand-name">Sattva Jnana Workspace</div>
+          <div class="ep-brand-sub">Employee Self-Service</div>
+        </div>
+        <span class="ep-badge" id="epRoleBadge"><i class="fa-solid fa-id-badge"></i> Employee</span>
+      </div>
+      <div class="cp-header-actions">
+        <button type="button" class="theme-toggle-btn" onclick="toggleWorkspaceTheme()" title="Toggle dark mode" aria-label="Toggle dark mode"><i class="fa-solid fa-moon"></i></button>
+        <button class="ep-logout-btn" id="epLogoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
+    </header>
+
+    <div class="cp-sidebar-backdrop" onclick="closeCpSidebar('empPortalScreen')"></div>
+    <aside class="cp-sidebar">
+      <nav class="nav-group" id="epSidebarNav">
+        <div class="empty" style="border:none;padding:1rem 0;"><h3 style="font-size:.85rem;"><i class="fa-solid fa-spinner fa-spin"></i></h3></div>
+      </nav>
+    </aside>
+
+    <main class="cp-main">
+      <div class="cp-main-inner" id="epMainContent">
+        <div class="empty"><h3><i class="fa-solid fa-spinner fa-spin"></i>&ensp;Loading...</h3></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- CLIENT / PARENT PORTAL -->
+<div id="clientPortalScreen">
+  <div class="cp-shell">
+    <header class="cp-header">
+      <div class="cp-header-left">
+        <button class="cp-hamburger" onclick="toggleCpSidebar('clientPortalScreen')" title="Menu"><i class="fa-solid fa-bars"></i></button>
+        <div class="ep-brand-icon"><img src="logo.png" alt="Logo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 36 36%22><rect width=%2236%22 height=%2236%22 rx=%228%22 fill=%22rgba(201,168,76,0.3)%22/><text x=%2218%22 y=%2225%22 text-anchor=%22middle%22 font-size=%2216%22>🏢</text></svg>'"></div>
+        <div>
+          <div class="ep-brand-name">Sattva Jnana Workspace</div>
+          <div class="ep-brand-sub">Parent / Client Portal</div>
+        </div>
+        <span class="ep-badge" id="cpRoleBadge"><i class="fa-solid fa-people-roof"></i> Parent / Client</span>
+      </div>
+      <div class="cp-header-actions">
+        <button type="button" class="theme-toggle-btn" onclick="toggleWorkspaceTheme()" title="Toggle dark mode" aria-label="Toggle dark mode"><i class="fa-solid fa-moon"></i></button>
+        <div class="cp-notif-wrap">
+          <button class="cp-bell" id="cpBellBtn" title="Notifications"><i class="fa-regular fa-bell"></i><span class="cp-bell-dot" id="cpNotifCount" style="display:none;">0</span></button>
+          <div class="cp-notif-panel" id="cpNotifPanel">
+            <div class="cp-notif-panel-head">Notifications</div>
+            <div class="cp-notif-list" id="cpNotifList">
+              <div class="cp-notif-empty"><i class="fa-regular fa-bell-slash"></i><span>You're all caught up.</span></div>
+            </div>
+          </div>
+        </div>
+        <button class="ep-logout-btn" id="cpLogoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
+    </header>
+
+    <div class="cp-sidebar-backdrop" onclick="closeCpSidebar('clientPortalScreen')"></div>
+    <aside class="cp-sidebar">
+      <nav class="nav-group">
+        <div class="nav-item active" data-cp-nav="dashboard" onclick="cpSidebarNav('dashboard',this)"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></div>
+        <div class="nav-item" data-cp-nav="attendance" onclick="cpSidebarNav('attendance',this)"><i class="fa-solid fa-clock"></i><span>Attendance</span></div>
+        <div class="nav-item" data-cp-nav="materials" onclick="cpSidebarNav('materials',this)"><i class="fa-solid fa-book-open"></i><span>Study Materials</span></div>
+        <div class="nav-item" data-cp-nav="progress" onclick="cpSidebarNav('progress',this)"><i class="fa-solid fa-chart-line"></i><span>Student Progress</span></div>
+        <div class="nav-item" data-cp-nav="testperf" onclick="cpSidebarNav('testperf',this)"><i class="fa-solid fa-graduation-cap"></i><span>Test Performance</span></div>
+        <div class="nav-item" data-cp-nav="schedule" onclick="cpSidebarNav('schedule',this)"><i class="fa-solid fa-calendar-week"></i><span>Schedule &amp; Leave</span></div>
+      </nav>
+
+      <div class="cp-sidebar-footer">
+        <div class="cp-footer-card">
+          <div class="cp-footer-illus"><i class="fa-solid fa-people-group"></i></div>
+          <p>We're here to support your child's learning journey.</p>
+        </div>
+        <div class="cp-help-card">
+          <i class="fa-solid fa-headset"></i>
+          <div>
+            <strong>Need Help?</strong>
+            <span><a href="https://wa.me/918088033983" target="_blank" rel="noopener">Contact Support</a></span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="cp-main">
+      <div class="cp-main-inner" id="cpMainContent">
+        <div class="empty"><h3><i class="fa-solid fa-spinner fa-spin"></i>&ensp;Loading...</h3></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ADMIN / MANAGER APP -->
+<div id="appContent" class="dashboard">
+  <div class="sidebar-backdrop" onclick="closeAdminSidebar()"></div>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><img src="logo.png" alt="Logo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><rect width=%2240%22 height=%2240%22 rx=%228%22 fill=%22rgba(201,168,76,0.3)%22/><text x=%2220%22 y=%2228%22 text-anchor=%22middle%22 font-size=%2218%22>🏢</text></svg>'"></div>
+      <div style="overflow:hidden;">
+        <span class="brand-text">Workspace</span>
+        <span class="brand-sub" id="userGreeting" style="color:var(--gold);"></span>
+      </div>
+    </div>
+    <div class="nav-label">Workspace</div>
+    <nav class="nav-group">
+      <div class="nav-item active" data-page="dashboard"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></div>
+      <div class="nav-item" data-page="employees" id="navEmployees"><i class="fa-solid fa-users"></i><span>Employees</span></div>
+      <div class="nav-item" data-page="addEmployee" id="navAddEmployee"><i class="fa-solid fa-user-plus"></i><span>Add Employee</span></div>
+      <div class="nav-item" data-page="attendance" id="navAttendance"><i class="fa-solid fa-clock"></i><span>Attendance</span></div>
+      <div class="nav-item" data-page="leaves"><i class="fa-solid fa-calendar-minus"></i><span>Leave Requests</span></div>
+      <div class="nav-item" data-page="monthlyReport"><i class="fa-solid fa-chart-bar"></i><span>Monthly Report</span></div>
+      <div class="nav-item" data-page="regularization"><i class="fa-solid fa-clock-rotate-left"></i><span>Regularization <span id="regBadge" style="display:none;background:var(--error);color:#fff;border-radius:99px;font-size:.65rem;padding:.1rem .45rem;margin-left:.2rem;"></span></span></div>
+    </nav>
+    <div class="nav-label">CRM</div>
+    <nav class="nav-group">
+      <div class="nav-item" data-page="leads" id="navLeads"><i class="fa-solid fa-inbox"></i><span>Leads</span></div>
+      <div class="nav-item" data-page="clients" id="navClients"><i class="fa-solid fa-user-group"></i><span>Clients</span></div>
+      <div class="nav-item" data-page="crmUsers" id="navCrmUsers"><i class="fa-solid fa-user-shield"></i><span>Users</span></div>
+    </nav>
+    <div class="nav-label">Admin</div>
+    <nav class="nav-group">
+      <div class="nav-item" data-page="roles" id="navRoles"><i class="fa-solid fa-shield-halved"></i><span>Roles & Assign</span></div>
+      <div class="nav-item" data-page="salarySlips" id="navSalarySlips"><i class="fa-solid fa-file-invoice-dollar"></i><span>Salary Slips</span></div>
+      <div class="nav-item" data-page="hrTeam" id="navHrTeam"><i class="fa-solid fa-user-tie"></i><span>HR Team</span></div>
+      <div class="nav-item" data-page="editRequests" id="navEditRequests"><i class="fa-solid fa-pen-to-square"></i><span>Edit Requests <span id="editReqBadge" style="display:none;background:var(--error);color:#fff;border-radius:99px;font-size:.65rem;padding:.1rem .45rem;margin-left:.2rem;"></span></span></div>
+      <div class="nav-item" data-page="adminDocs" id="navAdminDocs"><i class="fa-solid fa-folder-open"></i><span>Employee Docs</span></div>
+<div class="nav-item" onclick="window.open('https://harshiee-s.github.io/growitharshiee-CMS/HRM/Salary_Slip_generator/', '_blank')">
+  <i class="fa-solid fa-file-invoice"></i><span>Salary Slip Generator</span>
+</div>
+ <div class="nav-item" onclick="exportAttendanceExcel()"><i class="fa-solid fa-file-excel"></i><span>Export Attendance</span></div>
+      <div class="nav-item logout-item" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></div>
+    </nav>
+    <div class="sidebar-footer">
+      <strong><i class="fa-solid fa-circle-info"></i>&ensp;Leave Policy</strong>
+      Each employee gets 0.5 Casual + 0.5 Sick leave on joining.<br>Monthly accrual: 1 CL + 1 SL per completed month.
+    </div>
+  </aside>
+
+  <header class="header">
+    <div class="header-title" style="display:flex;align-items:center;">
+      <button class="admin-hamburger" onclick="toggleAdminSidebar()" title="Menu"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <h1 id="pageHeadTitle">Dashboard</h1>
+        <p id="pageHeadSub">Overview of your team and activity.</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="theme-toggle-btn" onclick="toggleWorkspaceTheme()" title="Toggle dark mode" aria-label="Toggle dark mode"><i class="fa-solid fa-moon"></i></button>
+      <span class="role-badge" id="headerRoleBadge"></span>
+      <button class="btn btn-gold" id="headerAddBtn" onclick="showAdminPage('addEmployee')">
+        <i class="fa-solid fa-plus"></i> Add Employee
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section class="page active" id="pageDashboard">
+      <div class="stats" id="dashStats"></div>
+      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:1rem;" id="dashGrid">
+        <div class="card panel">
+          <div class="panel-head"><h2>Recent Employees</h2></div>
+          <div id="dashRecentEmp"></div>
+        </div>
+        <div class="card panel">
+          <div class="panel-head"><h2>Pending Leave Requests</h2></div>
+          <div id="dashPendingLeaves"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CRM: LEADS -->
+    <section class="page" id="pageLeads">
+      <div class="card panel">
+        <div class="panel-head">
+          <div><h2>Leads</h2><p>Enquiries received from the website, plus any added manually.</p></div>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+            <input class="input" id="leadSearch" placeholder="Search leads…" style="width:190px;">
+            <select class="select-input" id="leadStatusFilter" style="width:160px;">
+              <option value="">All statuses</option>
+              <option>New</option><option>Contacted</option><option>Converted</option><option>Lost</option>
+            </select>
+            <button class="btn btn-gold" id="addLeadBtn"><i class="fa-solid fa-plus"></i> Add Lead</button>
+          </div>
+        </div>
+        <div class="table-wrap" id="leadsTableWrap"><div class="empty"><div class="empty-icon">📥</div><h3>Loading…</h3></div></div>
+      </div>
+    </section>
+
+    <!-- CRM: CLIENTS -->
+    <section class="page" id="pageClients">
+      <div class="card panel">
+        <div class="panel-head">
+          <div><h2>Clients</h2><p>Converted from leads, or added directly.</p></div>
+          <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+            <input class="input" id="clientSearch" placeholder="Search clients…" style="width:190px;">
+            <select class="select-input" id="clientStatusFilter" style="width:140px;">
+              <option value="">All statuses</option><option>Active</option><option>Inactive</option>
+            </select>
+            <button class="btn btn-gold" id="addClientBtn"><i class="fa-solid fa-plus"></i> Add Client</button>
+          </div>
+        </div>
+        <div class="table-wrap" id="clientsTableWrap"><div class="empty"><div class="empty-icon">👥</div><h3>Loading…</h3></div></div>
+      </div>
+    </section>
+
+    <!-- CRM: USERS -->
+    <section class="page" id="pageCrmUsers">
+      <div class="card panel">
+        <div class="panel-head">
+          <div><h2>Users</h2><p>Employees tagged as CRM-assignable — check "Can be assigned to CRM clients" on their employee record to add them here.</p></div>
+          <button class="btn btn-secondary" onclick="showAdminPage('addEmployee')"><i class="fa-solid fa-user-plus"></i> Add Employee</button>
+        </div>
+        <div class="table-wrap" id="crmUsersTableWrap"><div class="empty"><div class="empty-icon">🔑</div><h3>Loading…</h3></div></div>
+      </div>
+    </section>
+
+    <!-- ADD EMPLOYEE -->
+    <section class="page" id="pageAddEmployee">
+      <div class="card panel">
+        <div class="panel-head">
+          <div><h2>Add Employee</h2><p>Fill in all required details. Login credentials are created here.</p></div>
+        </div>
+        <form id="addEmpForm" class="form-grid" autocomplete="off">
+
+          <div class="form-section-title"><i class="fa-solid fa-user" style="font-size:.75rem;"></i> Personal Information</div>
+          <div class="form-row">
+            <div class="field"><label>Full Name <span class="req">*</span></label><input class="input" id="empName" required placeholder="e.g. Rahul Kumar"></div>
+            <div class="field"><label>Employee ID <span class="req">*</span></label>
+              <div style="display:flex;gap:.4rem;">
+                <input class="input" id="empId" required readonly style="background:var(--surface-2);cursor:not-allowed;font-family:var(--font-mono);" placeholder="e.g. SJ-EMP-005">
+                <button type="button" class="btn-icon" title="Edit manually" onclick="unlockEmpIdField('empId')"><i class="fa-solid fa-pen"></i></button>
+              </div>
+              <div class="muted-note">Auto-generated. Click the pencil to override.</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Phone Number</label><input class="input" id="empPhone" placeholder="+91 XXXXX XXXXX"></div>
+            <div class="field"><label>Gender</label>
+              <select class="select-input" id="empGender">
+                <option value="">Select Gender</option>
+                <option>Male</option><option>Female</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Date of Hiring <span class="req">*</span></label><input class="input" id="empDOH" type="date" required></div>
+            <div class="field"><label>Job Title <span class="req">*</span></label><input class="input" id="empTitle" required placeholder="e.g. Senior Accountant"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Role</label>
+              <select class="select-input" id="empRole">
+                <option value="employee">Employee</option>
+                <option value="manager">Manager</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="field"><label>Employment Type <span class="req">*</span></label>
+              <select class="select-input" id="empEmploymentType" required>
+                <option value="full-time">Full-time</option>
+                <option value="part-time">Part-time</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Salary Type <span class="req">*</span></label>
+              <select class="select-input" id="empSalaryType" onchange="updateSalaryLabel('emp')">
+                <option value="annual">Annual</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+            <div class="field"><label id="empSalaryLabel">Annual Salary (₹) <span class="req">*</span></label><input class="input" id="empSalary" type="number" min="0" required placeholder="e.g. 480000"></div>
+          </div>
+
+          <div class="field" id="addManagerAssignWrap">
+            <label>Assign to Manager</label>
+            <select class="select-input" id="empManagerAssign">
+              <option value="">— No Manager —</option>
+            </select>
+            <div class="muted-note">Manager's leave requests go to Admin.</div>
+          </div>
+
+          <div class="form-section-title"><i class="fa-solid fa-id-card" style="font-size:.75rem;"></i> Identity Documents</div>
+          <div class="form-row">
+            <div class="field"><label>PAN Card Number</label><input class="input" id="empPan" placeholder="ABCDE1234F" maxlength="10"></div>
+            <div class="field"><label>Aadhaar Card Number</label><input class="input" id="empAadhaar" placeholder="XXXX XXXX XXXX" maxlength="14"></div>
+          </div>
+
+          <div class="form-section-title"><i class="fa-solid fa-building-columns" style="font-size:.75rem;"></i> Bank Details</div>
+          <div class="form-row">
+            <div class="field"><label>Bank Account Number</label><input class="input" id="empBankAcc" placeholder="Account number"></div>
+            <div class="field"><label>IFSC Code</label><input class="input" id="empIFSC" placeholder="e.g. SBIN0001234"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Bank Name</label><input class="input" id="empBankName" placeholder="e.g. State Bank of India"></div>
+            <div class="field"><label>Account Holder Name</label><input class="input" id="empBankHolder" placeholder="As per bank records"></div>
+          </div>
+
+          <div class="form-section-title"><i class="fa-solid fa-shield-halved" style="font-size:.75rem;"></i> PF & Statutory</div>
+          <div style="display:flex;align-items:center;gap:.8rem;padding:.65rem .9rem;background:var(--surface-2);border:1px solid var(--border-2);border-radius:var(--r-sm);">
+            <input type="checkbox" id="empPfOptIn" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;" onchange="document.getElementById('empUANWrap').style.display=this.checked?'block':'none'">
+            <label for="empPfOptIn" style="cursor:pointer;font-weight:600;font-size:.88rem;">Employee opted for PF (Provident Fund)</label>
+          </div>
+          <div id="empUANWrap" style="display:none;margin-top:.5rem;">
+            <div class="field"><label>UAN Number</label><input class="input" id="empUAN" placeholder="12-digit UAN e.g. 100123456789" maxlength="12"></div>
+          </div>
+
+          <div class="form-section-title"><i class="fa-solid fa-user-shield" style="font-size:.75rem;"></i> CRM Access</div>
+          <div style="display:flex;align-items:center;gap:.8rem;padding:.65rem .9rem;background:var(--gold-soft);border:1px solid var(--gold-border);border-radius:var(--r-sm);">
+            <input type="checkbox" id="empCrmAssignable" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
+            <label for="empCrmAssignable" style="cursor:pointer;font-weight:600;font-size:.88rem;">Can be assigned to CRM clients (Leads / Clients module)</label>
+          </div>
+
+          <div class="form-section-title" style="background:rgba(13,122,78,.05);padding:.6rem .9rem;border-radius:var(--r-sm);border:none;margin:0;"><i class="fa-solid fa-lock" style="font-size:.75rem;color:var(--success);"></i> <span style="color:var(--success);">Create Login Credentials</span><span style="font-weight:400;color:var(--text-3);margin-left:.4rem;">(Required)</span></div>
+          <div class="form-row">
+            <div class="field"><label>Login Email <span class="req">*</span></label><input class="input" id="empLoginEmail" type="email" required placeholder="employee@sattvajnana.com"></div>
+            <div class="field"><label>Login Password <span class="req">*</span></label><input class="input" id="empLoginPass" type="password" required placeholder="Min 6 characters"></div>
+          </div>
+          <div class="success-box"><i class="fa-solid fa-circle-check"></i> Employee will receive 0.5 Casual + 0.5 Sick leave on joining automatically.</div>
+
+          <div style="display:flex;gap:.75rem;margin-top:.3rem;flex-wrap:wrap;">
+            <button class="btn btn-gold" type="submit" id="addEmpBtn"><i class="fa-solid fa-user-plus"></i> Create Employee</button>
+            <button class="btn btn-secondary" type="button" onclick="document.getElementById('addEmpForm').reset();updateSalaryLabel('emp');"><i class="fa-solid fa-rotate-left"></i> Clear</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- EMPLOYEES LIST -->
+    <section class="page" id="pageEmployees">
+      <div class="card panel" style="padding:.9rem 1rem;">
+        <div class="toolbar">
+          <input class="search" id="empSearch" placeholder="Search name, ID, title, email...">
+          <select class="select-filter" id="empFilterRole">
+            <option value="all">All Roles</option>
+            <option value="employee">Employee</option>
+            <option value="manager">Manager</option>
+          </select>
+          <select class="select-filter" id="empFilterStatus">
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <button class="btn btn-gold" onclick="showAdminPage('addEmployee')"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>
+      </div>
+      <div class="emp-grid" id="empList"></div>
+    </section>
+
+    <!-- ATTENDANCE (Admin view) -->
+    <section class="page" id="pageAttendance">
+      <div class="card panel">
+        <div class="panel-head">
+          <div><h2>Attendance Records</h2><p>All check-ins and check-outs across the team.</p></div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+            <input class="input" type="date" id="attFilterDate" style="width:160px;padding:.5rem .8rem;" />
+            <select class="select-filter" id="attFilterEmp"><option value="all">All Employees</option></select>
+            <button class="btn btn-secondary" onclick="loadAttendance()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+            <button class="btn btn-gold" onclick="openAdminAttModal()"><i class="fa-solid fa-plus"></i> Add Attendance</button>
+          </div>
+        </div>
+        <div class="table-wrap" id="attTableWrap">
+          <div class="empty"><h3>Loading records...</h3></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LEAVES (Admin/Manager view) -->
+    <section class="page" id="pageLeaves">
+      <div class="card panel">
+        <div class="panel-head">
+          <div><h2>Leave Requests</h2><p id="leavesSubtext">Manage all leave requests.</p></div>
+          <select class="select-filter" id="leaveFilterStatus">
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="table-wrap" id="leavesTableWrap">
+          <div class="empty"><h3>Loading requests...</h3></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROLES & ASSIGN -->
+    <section class="page" id="pageRoles">
+      <div class="card panel">
+        <div class="panel-head"><h2>Roles & Staff Assignment</h2><p>Assign employees to managers, promote, or dismiss.</p></div>
+        <div class="table-wrap" id="rolesTableWrap">
+          <div class="empty"><h3>Loading...</h3></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDIT REQUESTS (Admin view) -->
+    <section class="page" id="pageEditRequests">
+      <div class="card panel">
+        <div class="panel-head">
+          <div><h2>Edit Requests</h2><p>Review and approve profile changes submitted by employees and managers.</p></div>
+          <select class="select-filter" id="editReqFilterStatus">
+            <option value="pending">Pending</option>
+            <option value="all">All</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="table-wrap" id="editReqTableWrap">
+          <div class="empty"><h3>Loading...</h3></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SALARY SLIPS (Admin / HR upload) -->
+    <section class="page" id="pageSalarySlips">
+      <div class="card panel" style="padding:.9rem 1rem;margin-bottom:.8rem;">
+        <div class="panel-head">
+          <div><h2>Salary Slips</h2><p>Upload PDF salary slips for employees. They can download from their portal.</p></div>
+          <button class="btn btn-gold" onclick="openUploadSlipModal()"><i class="fa-solid fa-upload"></i> Upload Slip</button>
+        </div>
+        <div class="toolbar" style="margin-top:.5rem;">
+          <select class="select-filter" id="slipEmpFilter" style="flex:1;min-width:200px;"><option value="all">All Employees</option></select>
+          <input class="input" type="month" id="slipMonthFilter" style="width:155px;padding:.48rem .8rem;">
+          <button class="btn btn-secondary" onclick="loadAdminSlips()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        </div>
+      </div>
+      <div id="slipsTableWrap" class="card" style="padding:0;overflow:hidden;">
+        <div class="empty"><h3>Loading...</h3></div>
+      </div>
+    </section>
+
+    <!-- HR TEAM MANAGEMENT -->
+    <section class="page" id="pageHrTeam">
+      <div class="card panel" style="margin-bottom:.8rem;">
+        <div class="panel-head">
+          <div><h2>HR Team</h2><p>Create HR logins. HR can upload salary slips for employees.</p></div>
+          <button class="btn btn-gold" onclick="openCreateHRModal()"><i class="fa-solid fa-user-plus"></i> Add HR Member</button>
+        </div>
+        <div class="table-wrap" id="hrTeamTableWrap">
+          <div class="empty"><h3>Loading...</h3></div>
+        </div>
+      </div>
+    </section>
+    <section class="page" id="pageAdminDocs">
+      <div class="card panel" style="padding:.9rem 1rem;">
+        <div class="panel-head">
+          <div><h2>Employee Documents</h2><p>View all documents uploaded by employees and managers.</p></div>
+        </div>
+        <div class="toolbar" style="margin-top:.5rem;">
+          <select class="select-filter" id="adminDocEmpFilter" style="flex:1;min-width:200px;">
+            <option value="all">All Employees</option>
+          </select>
+          <select class="select-filter" id="adminDocTypeFilter">
+            <option value="all">All Types</option>
+            <option value="pan">PAN Card</option>
+            <option value="aadhaar">Aadhaar Card</option>
+            <option value="marksheet_10">10th Mark Sheet</option>
+            <option value="marksheet_12">12th Mark Sheet</option>
+            <option value="degree">Degree Certificate</option>
+            <option value="offer_letter">Offer Letter</option>
+            <option value="relieving">Relieving Letter</option>
+            <option value="experience">Experience Certificate</option>
+            <option value="other">Other</option>
+          </select>
+          <button class="btn btn-secondary" onclick="loadAdminDocs()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        </div>
+      </div>
+      <div id="adminDocTableWrap" class="card" style="margin-top:.5rem;padding:0;overflow:hidden;">
+        <div class="empty"><h3>Loading documents...</h3></div>
+      </div>
+    </section>
+
+    <!-- MONTHLY REPORT -->
+    <section class="page" id="pageMonthlyReport">
+      <div class="card panel" style="padding:.9rem 1rem;">
+        <div class="panel-head">
+          <div><h2>Monthly Attendance Report</h2><p>Present/Absent per employee, measured against each day's scheduled client hours — not a flat 9 hrs.</p></div>
+          <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+            <input class="input" type="month" id="reportMonth" style="width:160px;padding:.5rem .8rem;">
+            <select class="select-filter" id="reportEmpFilter"><option value="all">All Employees</option></select>
+            <button class="btn btn-gold" onclick="loadMonthlyReport()"><i class="fa-solid fa-rotate"></i> Generate</button>
+            <button class="btn btn-secondary" onclick="exportMonthlyReport()"><i class="fa-solid fa-file-excel"></i> Export</button>
+          </div>
+        </div>
+      </div>
+      <div id="monthlyReportWrap" style="margin-top:.5rem;">
+        <div class="empty"><div class="empty-icon">📊</div><h3>Select a month and click Generate.</h3></div>
+      </div>
+    </section>
+
+    <!-- REGULARIZATION -->
+    <section class="page" id="pageRegularization">
+      <div class="card panel">
+        <div class="panel-head">
+          <div><h2>Regularization Requests</h2><p>Session-wise: employees request per client, per date. Approval excuses just that session's hours from the day's requirement.</p></div>
+          <select class="select-filter" id="regFilterStatus">
+            <option value="pending">Pending</option>
+            <option value="all">All</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="table-wrap" id="regTableWrap">
+          <div class="empty"><h3>Loading...</h3></div>
+        </div>
+      </div>
+    </section>
+</div>
+
+<!-- ADMIN: ADJUST LEAVE BALANCE MODAL -->
+<!-- ADMIN: DOCUMENT PREVIEW MODAL -->
+<div class="modal-backdrop" id="adminDocPreviewModal">
+  <div class="modal" style="max-width:860px;">
+    <div class="modal-head">
+      <h2 id="adminDocPreviewTitle">Document Preview</h2>
+      <button class="modal-close" onclick="document.getElementById('adminDocPreviewModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="adminDocPreviewBody" style="min-height:400px;display:flex;align-items:center;justify-content:center;"></div>
+  </div>
+</div>
+
+<!-- UPLOAD SALARY SLIP MODAL (Admin / HR) -->
+<div class="modal-backdrop" id="uploadSlipModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-head">
+      <h2><i class="fa-solid fa-file-invoice-dollar" style="color:var(--gold);font-size:1rem;"></i> Upload Salary Slip</h2>
+      <button class="modal-close" onclick="document.getElementById('uploadSlipModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="uploadSlipForm" class="form-grid" autocomplete="off">
+      <div class="form-row">
+        <div class="field">
+          <label>Employee <span class="req">*</span></label>
+          <select class="select-input" id="slipEmpSelect" required><option value="">— Select Employee —</option></select>
+        </div>
+        <div class="field">
+          <label>Pay Month <span class="req">*</span></label>
+          <input class="input" type="month" id="slipPayMonth" required>
+        </div>
+      </div>
+      <div class="field">
+        <label>Salary Slip PDF <span class="req">*</span></label>
+        <label style="display:flex;align-items:center;gap:.6rem;padding:.6rem 1rem;border:1.5px dashed var(--border);border-radius:var(--r-sm);cursor:pointer;background:var(--surface-2);transition:border-color .2s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+          <i class="fa-solid fa-paperclip" style="color:var(--gold);"></i>
+          <span id="slipFileLabel" style="font-size:.85rem;color:var(--text-3);">Click to attach PDF (max 5 MB)</span>
+          <input type="file" id="slipFileInput" accept=".pdf" style="display:none" onchange="onSlipFileChosen(event)" required>
+        </label>
+      </div>
+      <div class="field"><label>Note (optional)</label><input class="input" id="slipNote" placeholder="e.g. April 2025 salary slip"></div>
+      <div id="slipUploadProgress" style="margin-top:.3rem;"></div>
+      <div style="display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;">
+        <button class="btn btn-secondary" type="button" onclick="document.getElementById('uploadSlipModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-gold" type="submit" id="slipUploadBtn"><i class="fa-solid fa-upload"></i> Upload</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- CREATE HR MEMBER MODAL -->
+<div class="modal-backdrop" id="createHRModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-head">
+      <h2><i class="fa-solid fa-user-tie" style="color:var(--gold);font-size:1rem;"></i> Add HR Member</h2>
+      <button class="modal-close" onclick="document.getElementById('createHRModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="createHRForm" class="form-grid" autocomplete="off">
+      <div class="form-row">
+        <div class="field"><label>Full Name <span class="req">*</span></label><input class="input" id="hrName" required placeholder="e.g. Priya Sharma"></div>
+        <div class="field"><label>Employee ID</label>
+          <div style="display:flex;gap:.4rem;">
+            <input class="input" id="hrEmpId" readonly style="background:var(--surface-2);cursor:not-allowed;font-family:var(--font-mono);" placeholder="e.g. SJ-EMP-005">
+            <button type="button" class="btn-icon" title="Edit manually" onclick="unlockEmpIdField('hrEmpId')"><i class="fa-solid fa-pen"></i></button>
+          </div>
+          <div class="muted-note">Auto-generated. Click the pencil to override.</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Login Email <span class="req">*</span></label><input class="input" id="hrEmail" type="email" required placeholder="hr@sattvajnana.com"></div>
+        <div class="field"><label>Login Password <span class="req">*</span></label><input class="input" id="hrPassword" type="password" required placeholder="Min 6 characters"></div>
+      </div>
+      <div class="info-box"><i class="fa-solid fa-circle-info"></i> HR members can log in and upload salary slips. They cannot access employee personal data.</div>
+      <div style="display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;">
+        <button class="btn btn-secondary" type="button" onclick="document.getElementById('createHRModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-gold" type="submit" id="createHRBtn"><i class="fa-solid fa-user-plus"></i> Create HR Login</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- HR PORTAL SCREEN -->
+<!-- HR PORTAL SCREEN -->
+<div id="hrPortalScreen" style="display:none;position:fixed;inset:0;z-index:200;background:var(--bg);flex-direction:column;overflow:auto;">
+  <header style="background:var(--primary);color:#fff;padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 2px 16px rgba(10,22,40,.25);">
+    <div style="display:flex;align-items:center;gap:.8rem;">
+      <div class="ep-brand-icon"><img src="logo.png" alt="Logo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 36 36%22><rect width=%2236%22 height=%2236%22 rx=%228%22 fill=%22rgba(201,168,76,0.3)%22/><text x=%2218%22 y=%2225%22 text-anchor=%22middle%22 font-size=%2216%22>🏢</text></svg>'"></div>
+      <div>
+        <div style="font-family:var(--font-head);font-size:1.05rem;">Sattva Jnana Workspace</div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.45);">HR Portal</div>
+      </div>
+      <span style="display:inline-flex;align-items:center;gap:.35rem;padding:.22rem .7rem;border-radius:var(--r-pill);background:rgba(201,168,76,.18);color:#E2BC5E;font-size:.72rem;font-weight:700;border:1px solid rgba(201,168,76,.3);text-transform:uppercase;letter-spacing:.05em;"><i class="fa-solid fa-user-tie"></i> HR</span>
+    </div>
+    <div style="display:flex;gap:.6rem;align-items:center;">
+      <button class="ep-logout-btn" onclick="window.open('https://harshiee-s.github.io/growitharshiee-CMS/HRM/Salary_Slip_generator/', '_blank')" style="background:rgba(201,168,76,.18);color:#E2BC5E;border-color:rgba(201,168,76,.3);">
+        <i class="fa-solid fa-file-invoice"></i> Salary Slip Generator
+      </button>
+      <button class="ep-logout-btn" id="hrLogoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </div>
+  </header>
+
+  <!-- HR TABS -->
+  <div style="background:var(--primary);padding:0 1.5rem;display:flex;gap:.3rem;border-top:1px solid rgba(255,255,255,.08);">
+    <button onclick="hrSwitchTab('slips',this)" id="hrTab-slips" style="padding:.65rem 1.1rem;font-size:.82rem;font-weight:600;border:none;background:rgba(201,168,76,.2);color:#E2BC5E;cursor:pointer;border-bottom:2px solid #E2BC5E;">
+      <i class="fa-solid fa-file-invoice-dollar"></i> Salary Slips
+    </button>
+    <button onclick="hrSwitchTab('addEmp',this)" id="hrTab-addEmp" style="padding:.65rem 1.1rem;font-size:.82rem;font-weight:600;border:none;background:transparent;color:rgba(255,255,255,.55);cursor:pointer;border-bottom:2px solid transparent;transition:.2s;">
+      <i class="fa-solid fa-user-plus"></i> Add Employee
+    </button>
+  </div>
+
+  <!-- HR TAB: SALARY SLIPS -->
+  <div id="hrTabPanel-slips" style="flex:1;padding:1.5rem;overflow-y:auto;">
+    <div style="max-width:900px;margin:0 auto;display:grid;gap:1.2rem;">
+
+      <div class="card panel" style="margin-bottom:0;">
+        <div class="panel-head">
+          <div><h2>Upload Salary Slip</h2><p>Select an employee and pay month, then attach the salary slip PDF.</p></div>
+        </div>
+        <form id="hrSlipForm" class="form-grid" autocomplete="off">
+          <div class="form-row">
+            <div class="field">
+              <label>Employee <span class="req">*</span></label>
+              <select class="select-input" id="hrSlipEmpSelect" required><option value="">— Select Employee —</option></select>
+            </div>
+            <div class="field">
+              <label>Pay Month <span class="req">*</span></label>
+              <input class="input" type="month" id="hrSlipPayMonth" required>
+            </div>
+          </div>
+          <div class="field">
+            <label>Salary Slip PDF <span class="req">*</span></label>
+            <label style="display:flex;align-items:center;gap:.6rem;padding:.6rem 1rem;border:1.5px dashed var(--border);border-radius:var(--r-sm);cursor:pointer;background:var(--surface-2);transition:border-color .2s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+              <i class="fa-solid fa-paperclip" style="color:var(--gold);"></i>
+              <span id="hrSlipFileLabel" style="font-size:.85rem;color:var(--text-3);">Click to attach PDF (max 5 MB)</span>
+              <input type="file" id="hrSlipFileInput" accept=".pdf" style="display:none" onchange="onHRSlipFileChosen(event)" required>
+            </label>
+          </div>
+          <div class="field"><label>Note (optional)</label><input class="input" id="hrSlipNote" placeholder="e.g. April 2025 salary slip"></div>
+          <div id="hrSlipProgress" style="margin-top:.3rem;"></div>
+          <div>
+            <button class="btn btn-gold" type="submit" id="hrSlipUploadBtn"><i class="fa-solid fa-upload"></i> Upload Salary Slip</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- HR: BULK SALARY SLIP UPLOAD -->
+      <div class="card panel">
+        <div class="panel-head">
+          <div><h2>Bulk Salary Slip Upload</h2><p>Pick a pay month, then drop or select multiple PDFs. Files auto-match to employees by Employee ID or name in the filename.</p></div>
+          <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+            <label style="font-size:.78rem;font-weight:600;color:var(--text-2);">Pay Month</label>
+            <input class="input" type="month" id="hrBulkPayMonth" style="width:160px;padding:.5rem .8rem;">
+          </div>
+        </div>
+        <div class="doc-drop-zone" id="hrBulkDropZone"
+             ondragover="hrBulkDragOver(event)" ondragleave="hrBulkDragLeave(event)" ondrop="hrBulkDrop(event)"
+             onclick="document.getElementById('hrBulkFileInput').click()">
+          <i class="fa-solid fa-file-arrow-up"></i>
+          <div style="font-size:.9rem;font-weight:600;color:var(--text-2);">Drop multiple PDFs here, or click to select</div>
+          <div style="font-size:.75rem;color:var(--text-3);">PDF only · Max 5 MB each</div>
+        </div>
+        <input type="file" id="hrBulkFileInput" accept=".pdf" multiple style="display:none" onchange="hrBulkFilesChosen(event)">
+        <div id="hrBulkQueueWrap"></div>
+      </div>
+
+      <!-- HR: ACTIVE EMPLOYEES LIST -->
+      <div class="card panel">
+        <div class="panel-head">
+          <div><h2>Active Employees</h2><p>Drag &amp; drop a PDF onto an employee — or click Attach — to upload their salary slip.</p></div>
+          <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+            <label style="font-size:.78rem;font-weight:600;color:var(--text-2);">Pay Month</label>
+            <input class="input" type="month" id="hrListPayMonth" style="width:160px;padding:.5rem .8rem;">
+            <button class="btn btn-secondary" onclick="loadHREmployees()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+          </div>
+        </div>
+        <input type="text" class="search" id="hrEmpSearch" placeholder="Search employees by name or ID..." style="margin-bottom:.5rem;" oninput="renderHREmployeeList()">
+        <div id="hrEmpListWrap"><div class="empty"><h3>Loading employees...</h3></div></div>
+      </div>
+
+      <div class="card panel">
+        <div class="panel-head"><h2>Uploaded Slips</h2><button class="btn btn-secondary" onclick="loadHRSlipsList()"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
+        <div class="table-wrap" id="hrSlipsListWrap"><div class="empty"><h3>Loading...</h3></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HR TAB: ADD EMPLOYEE -->
+  <div id="hrTabPanel-addEmp" style="display:none;flex:1;padding:1.5rem;overflow-y:auto;">
+    <div style="max-width:900px;margin:0 auto;">
+      <div class="card panel">
+        <div class="panel-head">
+          <div><h2>Add Employee</h2><p>Fill in all required details. Login credentials are created here.</p></div>
+        </div>
+        <form id="hrAddEmpForm" class="form-grid" autocomplete="off">
+
+          <div class="form-section-title"><i class="fa-solid fa-user" style="font-size:.75rem;"></i> Personal Information</div>
+          <div class="form-row">
+            <div class="field"><label>Full Name <span class="req">*</span></label><input class="input" id="hrEmpName" required placeholder="e.g. Rahul Kumar"></div>
+            <div class="field"><label>Employee ID <span class="req">*</span></label>
+              <div style="display:flex;gap:.4rem;">
+                <input class="input" id="hrEmpIdField" required readonly style="background:var(--surface-2);cursor:not-allowed;font-family:var(--font-mono);" placeholder="e.g. SJ-EMP-005">
+                <button type="button" class="btn-icon" title="Edit manually" onclick="unlockEmpIdField('hrEmpIdField')"><i class="fa-solid fa-pen"></i></button>
+              </div>
+              <div class="muted-note">Auto-generated. Click the pencil to override.</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Phone Number</label><input class="input" id="hrEmpPhone" placeholder="+91 XXXXX XXXXX"></div>
+            <div class="field"><label>Gender</label>
+              <select class="select-input" id="hrEmpGender">
+                <option value="">Select Gender</option>
+                <option>Male</option><option>Female</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Date of Hiring <span class="req">*</span></label><input class="input" id="hrEmpDOH" type="date" required></div>
+            <div class="field"><label>Job Title <span class="req">*</span></label><input class="input" id="hrEmpTitle" required placeholder="e.g. Senior Accountant"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Role</label>
+              <select class="select-input" id="hrEmpRole">
+                <option value="employee">Employee</option>
+                <option value="manager">Manager</option>
+              </select>
+            </div>
+            <div class="field"><label>Employment Type <span class="req">*</span></label>
+              <select class="select-input" id="hrEmpEmploymentType" required>
+                <option value="full-time">Full-time</option>
+                <option value="part-time">Part-time</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Salary Type <span class="req">*</span></label>
+              <select class="select-input" id="hrEmpSalaryType" onchange="updateSalaryLabel('hrEmp')">
+                <option value="annual">Annual</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+            <div class="field"><label id="hrEmpSalaryLabel">Annual Salary (₹) <span class="req">*</span></label><input class="input" id="hrEmpSalary" type="number" min="0" required placeholder="e.g. 480000"></div>
+          </div>
+
+          <div class="field">
+            <label>Assign to Manager</label>
+            <select class="select-input" id="hrEmpManagerAssign">
+              <option value="">— No Manager —</option>
+            </select>
+            <div class="muted-note">Manager's leave requests go to Admin.</div>
+          </div>
+
+          <div class="form-section-title"><i class="fa-solid fa-id-card" style="font-size:.75rem;"></i> Identity Documents</div>
+          <div class="form-row">
+            <div class="field"><label>PAN Card Number</label><input class="input" id="hrEmpPan" placeholder="ABCDE1234F" maxlength="10"></div>
+            <div class="field"><label>Aadhaar Card Number</label><input class="input" id="hrEmpAadhaar" placeholder="XXXX XXXX XXXX" maxlength="14"></div>
+          </div>
+
+          <div class="form-section-title"><i class="fa-solid fa-building-columns" style="font-size:.75rem;"></i> Bank Details</div>
+          <div class="form-row">
+            <div class="field"><label>Bank Account Number</label><input class="input" id="hrEmpBankAcc" placeholder="Account number"></div>
+            <div class="field"><label>IFSC Code</label><input class="input" id="hrEmpIFSC" placeholder="e.g. SBIN0001234"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Bank Name</label><input class="input" id="hrEmpBankName" placeholder="e.g. State Bank of India"></div>
+            <div class="field"><label>Account Holder Name</label><input class="input" id="hrEmpBankHolder" placeholder="As per bank records"></div>
+          </div>
+
+          <div class="form-section-title"><i class="fa-solid fa-shield-halved" style="font-size:.75rem;"></i> PF & Statutory</div>
+          <div style="display:flex;align-items:center;gap:.8rem;padding:.65rem .9rem;background:var(--surface-2);border:1px solid var(--border-2);border-radius:var(--r-sm);">
+            <input type="checkbox" id="hrEmpPfOptIn" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;" onchange="document.getElementById('hrEmpUANWrap').style.display=this.checked?'block':'none'">
+            <label for="hrEmpPfOptIn" style="cursor:pointer;font-weight:600;font-size:.88rem;">Employee opted for PF (Provident Fund)</label>
+          </div>
+          <div id="hrEmpUANWrap" style="display:none;margin-top:.5rem;">
+            <div class="field"><label>UAN Number</label><input class="input" id="hrEmpUAN" placeholder="12-digit UAN e.g. 100123456789" maxlength="12"></div>
+          </div>
+
+          <div class="form-section-title" style="background:rgba(13,122,78,.05);padding:.6rem .9rem;border-radius:var(--r-sm);border:none;margin:0;">
+            <i class="fa-solid fa-lock" style="font-size:.75rem;color:var(--success);"></i>
+            <span style="color:var(--success);">Create Login Credentials</span>
+            <span style="font-weight:400;color:var(--text-3);margin-left:.4rem;">(Required)</span>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Login Email <span class="req">*</span></label><input class="input" id="hrEmpLoginEmail" type="email" required placeholder="employee@sattvajnana.com"></div>
+            <div class="field"><label>Login Password <span class="req">*</span></label><input class="input" id="hrEmpLoginPass" type="password" required placeholder="Min 6 characters"></div>
+          </div>
+          <div class="success-box"><i class="fa-solid fa-circle-check"></i> Employee will receive 0.5 Casual + 0.5 Sick leave on joining automatically.</div>
+
+          <div style="display:flex;gap:.75rem;margin-top:.3rem;flex-wrap:wrap;">
+            <button class="btn btn-gold" type="submit" id="hrAddEmpBtn"><i class="fa-solid fa-user-plus"></i> Create Employee</button>
+            <button class="btn btn-secondary" type="button" onclick="document.getElementById('hrAddEmpForm').reset();updateSalaryLabel('hrEmp');"><i class="fa-solid fa-rotate-left"></i> Clear</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</div>
+
+<!-- PARENT: APPLY LEAVE MODAL -->
+<div class="modal-backdrop" id="parentLeaveModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-head">
+      <h2><i class="fa-solid fa-calendar-xmark" style="color:var(--warn);font-size:1rem;"></i> Apply for Leave</h2>
+      <button class="modal-close" onclick="document.getElementById('parentLeaveModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="info-box" style="margin-bottom:1rem;"><i class="fa-solid fa-circle-info"></i> Days you mark here won't count as scheduled tuition sessions — no need for a make-up, and it won't affect your tutor's attendance.</div>
+    <form id="parentLeaveForm" class="form-grid" autocomplete="off">
+      <div class="form-row">
+        <div class="field"><label>From <span class="req">*</span></label><input class="input" type="date" id="plFrom" required></div>
+        <div class="field"><label>To</label><input class="input" type="date" id="plTo" placeholder="Same as From if empty"></div>
+      </div>
+      <div class="field"><label>Reason</label><textarea class="textarea" id="plReason" placeholder="Optional — e.g. family trip, exams, unwell..."></textarea></div>
+      <div style="display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;">
+        <button class="btn btn-secondary" type="button" onclick="document.getElementById('parentLeaveModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-gold" type="submit" id="plSubmitBtn"><i class="fa-solid fa-paper-plane"></i> Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ADMIN: PAUSE CLIENT SESSIONS -->
+<div class="modal-backdrop" id="adminPauseModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-head">
+      <h2 id="apModalTitle"><i class="fa-solid fa-calendar-xmark" style="color:var(--warn);font-size:1rem;"></i> Pause Sessions</h2>
+      <button class="modal-close" onclick="document.getElementById('adminPauseModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="info-box" style="margin-bottom:1rem;"><i class="fa-solid fa-circle-info"></i> Dates you pause here won't count as scheduled sessions for this client — they'll show as No Work in every assigned staff member's attendance (regular and supplementary alike).</div>
+    <form id="adminPauseForm" class="form-grid" autocomplete="off">
+      <input type="hidden" id="apClientId">
+      <input type="hidden" id="apEditId">
+      <input type="hidden" id="apEditOriginalDate">
+      <div class="form-row">
+        <div class="field"><label>From <span class="req">*</span></label><input class="input" type="date" id="apFrom" required></div>
+        <div class="field" id="apToWrap"><label>To</label><input class="input" type="date" id="apTo" placeholder="Same as From if empty"></div>
+      </div>
+      <div class="field"><label>Reason</label><textarea class="textarea" id="apReason" placeholder="Optional — e.g. public holiday, client requested off, exams..."></textarea></div>
+      <div style="display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;">
+        <button class="btn btn-secondary" type="button" onclick="document.getElementById('adminPauseModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-gold" type="submit" id="apSubmitBtn"><i class="fa-solid fa-pause"></i> Pause Sessions</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- PARENT / ADMIN: REDUCE SESSION HOURS (shortens one session instead of pausing it) -->
+<div class="modal-backdrop" id="reduceHoursModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-head">
+      <h2 id="rhModalTitle"><i class="fa-solid fa-hourglass-half" style="color:var(--warn);font-size:1rem;"></i> Reduce Session Hours</h2>
+      <button class="modal-close" onclick="document.getElementById('reduceHoursModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="info-box" style="margin-bottom:1rem;"><i class="fa-solid fa-circle-info"></i> Cut a session short instead of cancelling it. Pick the date and how many hours are actually needed — the assigned staff member's attendance for that date is then measured against the reduced time, not the usual scheduled hours.</div>
+    <form id="reduceHoursForm" class="form-grid" autocomplete="off">
+      <input type="hidden" id="rhClientId">
+      <input type="hidden" id="rhEditId">
+      <div class="field"><label>Date <span class="req">*</span></label><input class="input" type="date" id="rhDate" required></div>
+      <div class="field"><label>Reduced Hours <span class="req">*</span></label><input class="input" type="number" min="0.5" step="0.5" id="rhHours" placeholder="e.g. 1" required></div>
+      <div class="muted-note" id="rhNormalNote"></div>
+      <div class="field"><label>Reason</label><textarea class="textarea" id="rhReason" placeholder="Optional — e.g. running late today, shorter session needed..."></textarea></div>
+      <div style="display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;">
+        <button class="btn btn-secondary" type="button" onclick="document.getElementById('reduceHoursModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-gold" type="submit" id="rhSubmitBtn"><i class="fa-solid fa-paper-plane"></i> Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ADMIN: ADD / EDIT ATTENDANCE -->
+<div class="modal-backdrop" id="adminAttModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-head">
+      <h2 id="adminAttModalTitle"><i class="fa-solid fa-clock" style="color:var(--gold);font-size:1rem;"></i> Add Attendance</h2>
+      <button class="modal-close" onclick="document.getElementById('adminAttModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="adminAttForm" class="form-grid" autocomplete="off">
+      <input type="hidden" id="aaDocId">
+      <div class="field"><label>Employee <span class="req">*</span></label>
+        <select class="select-input" id="aaEmp" required onchange="onAdminAttEmpChange()"><option value="" disabled selected>Select employee…</option></select>
+      </div>
+      <div class="field"><label>Client (optional)</label>
+        <select class="select-input" id="aaClient" disabled onchange="onAdminAttClientChange()"><option value="">— No client / general attendance —</option></select>
+      </div>
+      <div class="field" id="aaSessionTypeWrap" style="display:none;">
+        <label>Session Type <span class="req">*</span></label>
+        <div style="display:flex;gap:1.2rem;">
+          <label style="font-size:.85rem;display:flex;align-items:center;gap:.35rem;"><input type="radio" name="aaSessionType" value="regular" checked> Regular</label>
+          <label style="font-size:.85rem;display:flex;align-items:center;gap:.35rem;"><input type="radio" name="aaSessionType" value="supplementary"> Supplementary</label>
+        </div>
+        <div class="muted-note">This person has supplementary sessions assigned for this client. If this attendance is for one of those (rather than their regular schedule), pick Supplementary — the date will be added to their supplementary sessions if it isn't already.</div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Date <span class="req">*</span></label><input class="input" type="date" id="aaDate" required></div>
+        <div class="field"><label>Scheduled Hours</label><input class="input" type="number" min="0" step="0.25" id="aaSchedHours" placeholder="e.g. 1"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Check In</label><input class="input" type="time" id="aaCheckIn"></div>
+        <div class="field"><label>Check Out</label><input class="input" type="time" id="aaCheckOut"></div>
+      </div>
+      <div class="field"><label>Notes</label><textarea class="textarea" id="aaNotes" placeholder="Optional session notes"></textarea></div>
+      <div style="display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;">
+        <button class="btn btn-secondary" type="button" onclick="document.getElementById('adminAttModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-gold" type="submit" id="aaSubmitBtn"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- REGULARIZATION REQUEST MODAL -->
+<div class="modal-backdrop" id="regRequestModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-head">
+      <h2><i class="fa-solid fa-clock-rotate-left" style="color:var(--gold);font-size:1rem;"></i> Apply for Regularization</h2>
+      <button class="modal-close" onclick="document.getElementById('regRequestModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="info-box" style="margin-bottom:1rem;"><i class="fa-solid fa-circle-info"></i> Request applies to one client's session on one date — not the whole day. Admin will review and approve.</div>
+    <form id="regRequestForm" class="form-grid" autocomplete="off">
+      <input type="hidden" id="regEmpDocId">
+      <div class="field"><label>Client / Session <span class="req">*</span></label>
+        <select class="select-input" id="regClient" required onchange="onRegClientChange()"><option value="" disabled selected>Select client…</option></select>
+      </div>
+      <div class="field"><label>Type <span class="req">*</span></label>
+        <div style="display:flex;gap:1.2rem;">
+          <label style="font-size:.85rem;display:flex;align-items:center;gap:.35rem;"><input type="radio" name="regType" value="regular" checked onchange="onRegTypeChange()"> Regular</label>
+          <label style="font-size:.85rem;display:flex;align-items:center;gap:.35rem;"><input type="radio" name="regType" value="supplementary" onchange="onRegTypeChange()"> Supplementary</label>
+        </div>
+      </div>
+      <div class="field" id="regDateWrap"><label>Date <span class="req">*</span></label><input class="input" type="date" id="regDate" required></div>
+      <div class="field" id="regSupWrap" style="display:none;">
+        <label>Supplementary Session <span class="req">*</span></label>
+        <select class="select-input" id="regSupSession"><option value="" disabled selected>Select client first…</option></select>
+        <div class="muted-note">Only your assigned supplementary sessions currently marked absent are listed.</div>
+      </div>
+      <div class="field"><label>Hours <span class="req">*</span></label><input class="input" type="number" min="0" step="0.25" id="regHours" required placeholder="e.g. 1"></div>
+      <div class="field"><label>Reason <span class="req">*</span></label><textarea class="textarea" id="regReason" required placeholder="e.g. Forgot to check out, system issue, worked from site..."></textarea></div>
+      <div style="display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;">
+        <button class="btn btn-secondary" type="button" onclick="document.getElementById('regRequestModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-gold" type="submit" id="regSubmitBtn"><i class="fa-solid fa-paper-plane"></i> Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- PROFILE PHOTO UPLOAD MODAL -->
+<div class="modal-backdrop" id="photoUploadModal">
+  <div class="modal" style="max-width:420px;text-align:center;">
+    <div class="modal-head">
+      <h2><i class="fa-solid fa-camera" style="color:var(--gold);font-size:1rem;"></i> Update Profile Photo</h2>
+      <button class="modal-close" onclick="document.getElementById('photoUploadModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="photoPreviewWrap" style="margin-bottom:1rem;">
+      <div id="photoPreviewEl" style="width:120px;height:120px;border-radius:20px;margin:0 auto;background:var(--surface-2);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:2.5rem;overflow:hidden;"></div>
+    </div>
+    <div class="doc-drop-zone" onclick="document.getElementById('photoFileInput').click()" style="padding:1.2rem;margin-bottom:1rem;">
+      <i class="fa-solid fa-cloud-arrow-up" style="font-size:1.5rem;"></i>
+      <div style="font-size:.85rem;font-weight:600;color:var(--text-2);margin-top:.3rem;">Click to select photo</div>
+      <div style="font-size:.75rem;color:var(--text-3);">JPG, PNG — Max 2 MB</div>
+    </div>
+    <input type="file" id="photoFileInput" style="display:none" accept=".jpg,.jpeg,.png" onchange="previewProfilePhoto(event)">
+    <div style="display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="document.getElementById('photoUploadModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-gold" id="photoSaveBtn" onclick="saveProfilePhoto()" disabled><i class="fa-solid fa-floppy-disk"></i> Save Photo</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT EMPLOYEE MODAL -->
+<div class="modal-backdrop" id="editEmpModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Edit Employee</h2>
+      <button class="modal-close" onclick="closeEditModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="editEmpForm" class="form-grid" autocomplete="off">
+      <input type="hidden" id="editEmpUID">
+      <div class="form-row">
+        <div class="field"><label>Full Name</label><input class="input" id="editEmpName"></div>
+        <div class="field"><label>Employee ID</label><input class="input" id="editEmpId"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Phone</label><input class="input" id="editEmpPhone"></div>
+        <div class="field"><label>Gender</label><select class="select-input" id="editEmpGender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Job Title</label><input class="input" id="editEmpTitle"></div>
+        <div class="field"><label>Annual Salary (₹)</label><input class="input" id="editEmpSalary" type="number" min="0"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Date of Hiring</label><input class="input" id="editEmpDOH" type="date"></div>
+        <div class="field"><label>Employment Type</label>
+          <select class="select-input" id="editEmpEmploymentType">
+            <option value="full-time">Full-time</option>
+            <option value="part-time">Part-time</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Status</label><select class="select-input" id="editEmpStatus"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+      </div>
+      <div class="field">
+        <label>Role</label>
+        <select class="select-input" id="editEmpRole" onchange="document.getElementById('editEmpRoleWarning').style.display = this.value==='admin' ? 'block' : 'none';">
+          <option value="employee">Employee</option>
+          <option value="manager">Manager</option>
+          <option value="admin">Admin</option>
+        </select>
+        <div class="muted-note" id="editEmpRoleWarning" style="display:none;color:var(--warn);">Admin gets full access to this Workspace — employee, payroll, and CRM data.</div>
+      </div>
+      <div class="field"><label>Assign to Manager</label>
+        <select class="select-input" id="editEmpManager"><option value="">— No Manager —</option></select>
+      </div>
+      <div class="form-section-title"><i class="fa-solid fa-id-card" style="font-size:.75rem;"></i> Identity</div>
+      <div class="form-row">
+        <div class="field"><label>PAN</label><input class="input" id="editEmpPan" maxlength="10"></div>
+        <div class="field"><label>Aadhaar</label><input class="input" id="editEmpAadhaar" maxlength="14"></div>
+      </div>
+      <div class="form-section-title"><i class="fa-solid fa-building-columns" style="font-size:.75rem;"></i> Bank Details</div>
+      <div class="form-row">
+        <div class="field"><label>Account Number</label><input class="input" id="editEmpBankAcc"></div>
+        <div class="field"><label>IFSC</label><input class="input" id="editEmpIFSC"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Bank Name</label><input class="input" id="editEmpBankName"></div>
+        <div class="field"><label>Account Holder</label><input class="input" id="editEmpBankHolder"></div>
+      </div>
+      <div class="form-section-title"><i class="fa-solid fa-user-shield" style="font-size:.75rem;"></i> CRM Access</div>
+      <div style="display:flex;align-items:center;gap:.8rem;padding:.65rem .9rem;background:var(--gold-soft);border:1px solid var(--gold-border);border-radius:var(--r-sm);">
+        <input type="checkbox" id="editEmpCrmAssignable" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
+        <label for="editEmpCrmAssignable" style="cursor:pointer;font-weight:600;font-size:.88rem;">Can be assigned to CRM clients (Leads / Clients module)</label>
+      </div>
+      <div style="display:flex;gap:.7rem;justify-content:flex-end;margin-top:.3rem;flex-wrap:wrap;">
+        <button class="btn btn-secondary" type="button" onclick="closeEditModal()">Cancel</button>
+        <button class="btn btn-gold" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- LEAVE REQUEST MODAL -->
+<div class="modal-backdrop" id="leaveModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-head">
+      <h2>Apply for Leave</h2>
+      <button class="modal-close" onclick="closeLeaveModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="leaveForm" class="form-grid">
+      <div class="field"><label>Leave Type</label>
+        <select class="select-input" id="leaveType" onchange="onLeaveTypeChange()">
+          <option value="full_day">Full Day</option>
+          <option value="half_day">Half Day</option>
+        </select>
+      </div>
+      <div class="form-row" id="leaveDateRow">
+        <div class="field"><label id="leaveFromLabel">From Date</label><input class="input" id="leaveFrom" type="date" required></div>
+        <div class="field" id="leaveToWrap"><label>To Date</label><input class="input" id="leaveTo" type="date"></div>
+      </div>
+      <div class="info-box" id="leaveDaysInfo"><i class="fa-solid fa-circle-info"></i> Select a leave type.</div>
+      <div class="field"><label>Reason</label><textarea class="textarea" id="leaveReason" placeholder="Brief reason for leave..."></textarea></div>
+      <div style="display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;">
+        <button class="btn btn-secondary" type="button" onclick="closeLeaveModal()">Cancel</button>
+        <button class="btn btn-gold" type="submit"><i class="fa-solid fa-paper-plane"></i> Submit Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- EMPLOYEE: REQUEST PROFILE EDIT MODAL -->
+<div class="modal-backdrop" id="empEditReqModal">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-head">
+      <h2><i class="fa-solid fa-pen-to-square" style="color:var(--gold);font-size:1rem;"></i> Request Profile Edit</h2>
+      <button class="modal-close" onclick="document.getElementById('empEditReqModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="info-box" style="margin-bottom:1rem;"><i class="fa-solid fa-circle-info"></i> Changes you submit here will be reviewed and approved by your Admin before taking effect.</div>
+    <form id="empEditReqForm" class="form-grid" autocomplete="off">
+      <input type="hidden" id="eerEmpDocId">
+      <div class="form-row">
+        <div class="field"><label>Phone Number</label><input class="input" id="eerPhone" placeholder="Leave blank to keep current"></div>
+        <div class="field"><label>Gender</label><select class="select-input" id="eerGender"><option value="">— No change —</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+      </div>
+      <div class="form-section-title"><i class="fa-solid fa-id-card" style="font-size:.75rem;"></i> Identity Documents</div>
+      <div class="form-row">
+        <div class="field"><label>PAN Card Number</label><input class="input" id="eerPan" maxlength="10" placeholder="Leave blank to keep current"></div>
+        <div class="field"><label>Aadhaar Card Number</label><input class="input" id="eerAadhaar" maxlength="14" placeholder="Leave blank to keep current"></div>
+      </div>
+      <div class="form-section-title"><i class="fa-solid fa-building-columns" style="font-size:.75rem;"></i> Bank Details</div>
+      <div class="form-row">
+        <div class="field"><label>Bank Account Number</label><input class="input" id="eerBankAcc" placeholder="Leave blank to keep current"></div>
+        <div class="field"><label>IFSC Code</label><input class="input" id="eerIFSC" placeholder="Leave blank to keep current"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Bank Name</label><input class="input" id="eerBankName" placeholder="Leave blank to keep current"></div>
+        <div class="field"><label>Account Holder Name</label><input class="input" id="eerBankHolder" placeholder="Leave blank to keep current"></div>
+      </div>
+      <div class="field"><label>Reason / Note for Admin</label><textarea class="textarea" id="eerNote" placeholder="Briefly explain why you're requesting this change..."></textarea></div>
+      <div style="display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;">
+        <button class="btn btn-secondary" type="button" onclick="document.getElementById('empEditReqModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-gold" type="submit" id="eerSubmitBtn"><i class="fa-solid fa-paper-plane"></i> Submit for Approval</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ADMIN: REVIEW EDIT REQUEST MODAL -->
+<div class="modal-backdrop" id="adminEditReviewModal">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-head">
+      <h2><i class="fa-solid fa-magnifying-glass" style="color:var(--gold);font-size:1rem;"></i> Review Edit Request</h2>
+      <button class="modal-close" onclick="document.getElementById('adminEditReviewModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="adminEditReviewBody"></div>
+  </div>
+</div>
+
+<!-- CRM: ADD / EDIT LEAD -->
+<div class="modal-backdrop" id="leadModal">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-head">
+      <h2 id="leadModalTitle"><i class="fa-solid fa-inbox" style="color:var(--gold);font-size:1rem;"></i> Add Lead</h2>
+      <button class="modal-close" onclick="document.getElementById('leadModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="leadForm" class="form-grid" autocomplete="off">
+      <input type="hidden" id="lf_id">
+      <div class="form-row">
+        <div class="field"><label>Parent / Guardian Name <span class="req">*</span></label><input class="input" id="lf_parentName" required></div>
+        <div class="field"><label>Student Name <span class="req">*</span></label><input class="input" id="lf_studentName" required></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Phone <span class="req">*</span></label><input class="input" id="lf_phone" required></div>
+        <div class="field"><label>Email</label><input class="input" id="lf_email" type="email"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Grade / Class <span class="req">*</span></label>
+          <select class="select-input" id="lf_grade" required>
+            <option value="" disabled selected>Select</option>
+            <option>Grades 1–5</option><option>Grades 6–8</option><option>Grades 9–10</option><option>Grades 11–12</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>Curriculum</label>
+          <select class="select-input" id="lf_curriculum">
+            <option value="" disabled selected>Select</option><option>ICSE</option><option>CBSE</option><option>State Board</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Subject(s) Needed <span class="req">*</span></label><input class="input" id="lf_subjects" required></div>
+      <div class="form-row">
+        <div class="field"><label>Area <span class="req">*</span></label><input class="input" id="lf_area" required></div>
+        <div class="field"><label>Status</label>
+          <select class="select-input" id="lf_status"><option>New</option><option>Contacted</option><option>Converted</option><option>Lost</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Notes</label><textarea class="input" id="lf_notes" rows="3" placeholder="Internal notes (optional)"></textarea></div>
+      <div style="display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;">
+        <button class="btn btn-secondary" type="button" onclick="document.getElementById('leadModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-gold" type="submit" id="leadSaveBtn"><i class="fa-solid fa-floppy-disk"></i> Save Lead</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- CRM: LEAD DETAIL -->
+<div class="modal-backdrop" id="leadDetailModal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-head">
+      <h2 id="leadDetailTitle"><i class="fa-solid fa-inbox" style="color:var(--gold);font-size:1rem;"></i> Lead Detail</h2>
+      <button class="modal-close" onclick="document.getElementById('leadDetailModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="leadDetailBody"></div>
+    <div id="leadDetailFoot" style="display:flex;gap:.7rem;justify-content:flex-end;margin-top:1.1rem;flex-wrap:wrap;"></div>
+  </div>
+</div>
+
+<!-- CRM: ADD / EDIT CLIENT -->
+<div class="modal-backdrop" id="clientModal">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-head">
+      <h2 id="clientModalTitle"><i class="fa-solid fa-user-group" style="color:var(--gold);font-size:1rem;"></i> Add Client</h2>
+      <button class="modal-close" onclick="document.getElementById('clientModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="clientForm" class="form-grid" autocomplete="off">
+      <input type="hidden" id="cf_id">
+      <div class="form-row">
+        <div class="field"><label>Parent / Guardian Name <span class="req">*</span></label><input class="input" id="cf_parentName" required></div>
+        <div class="field"><label>Student Name <span class="req">*</span></label><input class="input" id="cf_studentName" required></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Phone <span class="req">*</span></label><input class="input" id="cf_phone" required></div>
+        <div class="field"><label>Email</label><input class="input" id="cf_email" type="email"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Grade / Class</label>
+          <select class="select-input" id="cf_grade">
+            <option value="" disabled selected>Select</option>
+            <option>Grades 1–5</option><option>Grades 6–8</option><option>Grades 9–10</option><option>Grades 11–12</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>Curriculum</label>
+          <select class="select-input" id="cf_curriculum">
+            <option value="" disabled selected>Select</option><option>ICSE</option><option>CBSE</option><option>State Board</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Subject(s) <span class="req">*</span></label><input class="input" id="cf_subjects" required></div>
+      <div class="form-row">
+        <div class="field"><label>Area <span class="req">*</span></label><input class="input" id="cf_area" required></div>
+        <div class="field"><label>Status</label><select class="select-input" id="cf_status"><option>Active</option><option>Inactive</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Fee (₹)</label><input class="input" id="cf_fee" type="number" min="0" step="0.01" placeholder="e.g. 5000 per month"></div>
+        <div class="field"><label>Start Date <span class="req">*</span></label><input class="input" id="cf_startDate" type="date" required>
+          <div class="muted-note" style="margin-top:.25rem;">Sessions before this date won't be expected of the assigned employee — attendance is only tracked from here onward.</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Tuition Days &amp; Duration <span class="req">*</span></label>
+        <div class="muted-note" style="margin-bottom:.4rem;">Pick the days this student has sessions, and how many hours each. This drives the employee's expected working hours and attendance status.</div>
+        <div id="cf_scheduleGrid" style="display:grid;gap:.5rem;"></div>
+      </div>
+      <div class="field"><label>Notes</label><textarea class="input" id="cf_notes" rows="3" placeholder="Internal notes (optional)"></textarea></div>
+      <div style="display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;">
+        <button class="btn btn-secondary" type="button" onclick="document.getElementById('clientModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-gold" type="submit" id="clientSaveBtn"><i class="fa-solid fa-floppy-disk"></i> Save Client</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- CRM: CLIENT DETAIL -->
+<div class="modal-backdrop" id="clientDetailModal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-head">
+      <h2 id="clientDetailTitle"><i class="fa-solid fa-user-group" style="color:var(--gold);font-size:1rem;"></i> Client Detail</h2>
+      <button class="modal-close" onclick="document.getElementById('clientDetailModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="clientDetailBody"></div>
+    <div id="clientDetailFoot" style="display:flex;gap:.7rem;justify-content:flex-end;margin-top:1.1rem;flex-wrap:wrap;"></div>
+  </div>
+</div>
+
+<!-- CRM: ASSIGN USERS TO CLIENT -->
+<div class="modal-backdrop" id="assignUsersModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-head">
+      <h2><i class="fa-solid fa-user-shield" style="color:var(--gold);font-size:1rem;"></i> Assign Users to Client</h2>
+      <button class="modal-close" onclick="document.getElementById('assignUsersModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p style="font-size:.8rem;color:var(--text-3);margin-bottom:.6rem;">Assigned users will be able to see and update this client's record. For each, choose <strong>Regular</strong> (follows the weekly schedule above), add <strong>Supplementary</strong> dates for extra sessions beyond their regular days, and/or add <strong>Paused</strong> dates to excuse them on days someone else is covering. These can be combined freely.</p>
+    <div id="assignUsersSchedule" style="margin-bottom:.9rem;display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;"></div>
+    <div class="checklist" id="assignUsersChecklist" style="max-height:52vh;overflow-y:auto;"></div>
+    <div style="display:flex;gap:.7rem;justify-content:flex-end;margin-top:1rem;flex-wrap:wrap;">
+      <button class="btn btn-secondary" type="button" onclick="document.getElementById('assignUsersModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-gold" id="saveAssignUsersBtn"><i class="fa-solid fa-floppy-disk"></i> Save Assignment</button>
+    </div>
+  </div>
+</div>
+
+<!-- CRM: CREATE CLIENT LOGIN -->
+<div class="modal-backdrop" id="clientLoginModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-head">
+      <h2><i class="fa-solid fa-key" style="color:var(--gold);font-size:1rem;"></i> Create Client Login</h2>
+      <button class="modal-close" onclick="document.getElementById('clientLoginModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p style="font-size:.8rem;color:var(--text-3);margin-bottom:.8rem;">Creates a login for the parent/client so they can view attendance, study materials, progress, and test performance for this student.</p>
+    <input type="hidden" id="clLoginClientId">
+    <div class="modal-alert" id="clLoginAlert"></div>
+    <div class="field"><label>Login Email <span class="req">*</span></label><input class="input" id="clLoginEmail" type="email" placeholder="parent@example.com"></div>
+    <div class="field"><label>Password <span class="req">*</span></label><input class="input" id="clLoginPass" type="password" placeholder="Minimum 6 characters"></div>
+    <div style="display:flex;gap:.7rem;justify-content:flex-end;margin-top:1rem;flex-wrap:wrap;">
+      <button class="btn btn-secondary" type="button" onclick="document.getElementById('clientLoginModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-gold" id="clLoginSaveBtn" onclick="submitClientLogin()"><i class="fa-solid fa-key"></i> Create Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHECK-OUT NOTES -->
+<div class="modal-backdrop" id="checkoutNotesModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-head">
+      <h2><i class="fa-solid fa-right-from-bracket" style="color:var(--gold);font-size:1rem;"></i> Check Out</h2>
+      <button class="modal-close" onclick="document.getElementById('checkoutNotesModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="field"><label>Session Notes (optional)</label><textarea class="input" id="checkoutNotesText" rows="4" placeholder="What was covered, how it went, anything for the next session…"></textarea></div>
+    <div style="display:flex;gap:.7rem;justify-content:flex-end;margin-top:1rem;flex-wrap:wrap;">
+      <button class="btn btn-secondary" type="button" onclick="document.getElementById('checkoutNotesModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-gold" onclick="submitCheckoutNotes()"><i class="fa-solid fa-right-from-bracket"></i> Check Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- CRM: ASSIGN CLIENTS TO USER -->
+<div class="modal-backdrop" id="assignClientsModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-head">
+      <h2><i class="fa-solid fa-user-group" style="color:var(--gold);font-size:1rem;"></i> Assign Clients to User</h2>
+      <button class="modal-close" onclick="document.getElementById('assignClientsModal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="checklist" id="assignClientsChecklist"></div>
+    <div style="display:flex;gap:.7rem;justify-content:flex-end;margin-top:1rem;flex-wrap:wrap;">
+      <button class="btn btn-secondary" type="button" onclick="document.getElementById('assignClientsModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-gold" id="saveAssignClientsBtn"><i class="fa-solid fa-floppy-disk"></i> Save Assignment</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/assets/work/space/hide/style/app.js"></script>
+
+<!-- THEME TOGGLE — dark/light, persisted, synced across every toggle button on the page -->
+<script>
+  function syncThemeToggleIcons(theme){
+    document.querySelectorAll('.theme-toggle-btn i').forEach(function(icon){
+      icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    });
+  }
+  function toggleWorkspaceTheme(){
+    var root = document.documentElement;
+    var next = (root.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try{ localStorage.setItem('workspace-theme', next); }catch(e){}
+    syncThemeToggleIcons(next);
+  }
+  (function initThemeIcons(){
+    var apply = function(){ syncThemeToggleIcons(document.documentElement.getAttribute('data-theme') || 'light'); };
+    if (document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', apply); }
+    else { apply(); }
+  })();
+</script>
+</body>
+</html>
